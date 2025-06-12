@@ -1,0 +1,252 @@
+[
+    {
+      "postgres": "CREATE OR REPLACE FUNCTION get_user_ages() RETURNS setof numeric AS $BODY$ DECLARE curr_age text; BEGIN FOR curr_age IN SELECT Age FROM users LOOP BEGIN RETURN NEXT curr_age::numeric; EXCEPTION WHEN OTHERS THEN NULL; END; END LOOP; END $BODY$ LANGUAGE plpgsql; SELECT * FROM get_user_ages()",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "postgres": "CREATE TABLE client_information ( client_id smallserial NOT NULL, first_name character varying(50), last_name character varying(50), full_name character varying(101) GENERATED ALWAYS AS (CASE WHEN first_name IS NULL THEN last_name WHEN last_name IS NULL THEN first_name ELSE first_name || ' ' || last_name END) STORED, PRIMARY KEY (client_id) )",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "sqlite": "select count(distinct transaction_id) from master_txn_table where customers = \"Stephanie Edwards\" and transaction_type = 'invoice' and open_balance >0 and transaction_date BETWEEN date(current_date, '-3 months', 'start of year', '+3 months') AND date(current_date, '-3 months', 'start of year','+1 year', '+3 months', '-1 day')",
+      "mysql": "to be translated",
+      "id": "BookSQL"
+    },
+    {
+      "sqlite": "\"select sum(credit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where customers = \"\"Katie Cox\"\" and transaction_date \"BETWEEN date(current_date, 'start of year') AND date(current_date, 'start of year', '+1 month', '-1 day') \" and account_type in ('Income','Other Income')\"",
+      "mysql": "to be translated",
+      "id": "BookSQL"
+    },
+    {
+      "sqlite": "SELECT CAST(SUM(CASE WHEN T2.`Sales Team` = 'Carlos Miller' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T1.OrderNumber) FROM `Sales Orders` AS T1 INNER JOIN `Sales Team` AS T2 ON T2.SalesTeamID = T1._SalesTeamID",
+      "postgres": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "sqlite": "\"select sum(credit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where customers = \"\"Katie Cox\"\" and transaction_date \"BETWEEN date(current_date, 'start of year') AND date(current_date, 'start of year', '+1 month', '-1 day') \" and account_type in ('Income','Other Income')\"",
+      "mysql": "to be translated",
+      "id": "BookSQL"
+    },
+    {
+      "postgres": "create or replace function setup_vector_store(table_name text) returns void language plpgsql as $f1$ begin execute format($dynsql$ create table %1$I (id bigint primary key generated always as identity, description text, metadata jsonb); drop function if exists match_strategies(int, jsonb); create function match_strategies (match_count int default null, filter jsonb default '{}'::jsonb) returns table (id bigint, description text, metadata jsonb, similarity float) language plpgsql as $f2$ begin return query select id, description, metadata, 1 as similarity from %1$I where metadata @> filter limit match_count; end; $f2$; $dynsql$, table_name); end; $f1$",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "sqlite": "SELECT DISTINCT DATETIME() - T2.birthday age FROM Player_Attributes AS t1 INNER JOIN Player AS t2 ON t1.player_api_id = t2.player_api_id WHERE STRFTIME('%Y',t1.`date`) >= '2013' AND STRFTIME('%Y',t1.`date`) <= '2015' AND t1.sprint_speed >= 97",
+      "mysql": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "postgres": "create or replace function setup_vector_store(table_name text) returns void language plpgsql as $f1$ begin execute format($dynsql$ create table %1$I (id bigint primary key generated always as identity, description text, metadata jsonb); drop function if exists match_strategies(int, jsonb); create function match_strategies (match_count int default null, filter jsonb default '{}'::jsonb) returns table (id bigint, description text, metadata jsonb, similarity float) language plpgsql as $f2$ begin return query select id, description, metadata, 1 as similarity from %1$I where metadata @> filter limit match_count; end; $f2$; $dynsql$, table_name); end; $f1$",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "sqlite": "select max(credit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where account_type in ('Income','Other Income') and customers = \"Beth Walsh\" and transaction_date BETWEEN date(current_date, 'start of year', '+7 month') AND date(current_date, 'start of year', '+8 month', '-1 day')",
+      "mysql": "to be translated",
+      "id": "BookSQL"
+    },
+    {
+      "sqlite": "SELECT `Discount Applied` FROM `Sales Orders` WHERE REPLACE(`Unit Price`, ',', '') = ( SELECT REPLACE(`Unit Price`, ',', '') FROM `Sales Orders` ORDER BY REPLACE(`Unit Price`, ',', '') DESC LIMIT 1 ) ORDER BY REPLACE(`Unit Price`, ',', '') DESC LIMIT 1",
+      "postgres": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "sqlite": "SELECT COUNT(T2.rental_id) , CAST(SUM(IIF(STRFTIME('%m',T2.rental_date) = '7', 1, 0)) AS REAL) * 100 / COUNT(T2.rental_id) FROM customer AS T1 INNER JOIN rental AS T2 ON T1.customer_id = T2.customer_id WHERE T1.first_name = 'Maria' AND T1.last_name = 'Miller' AND STRFTIME('%Y',T2.rental_date) = '2005'",
+      "mysql": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "postgres": "SELECT * FROM account_info WHERE condition::jsonb @> '[ { \"conditions\": { \"rootcompanyid\": { \"$in\": [5] } } } ]'",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "sqlite": "select distinct transaction_id from master_txn_table where transaction_type = 'bill' and customers = \"Dakota Acevedo\" and product_service = \"Medical services\" and transaction_date BETWEEN date(current_date, '-3 months', 'start of year','-1 years', '+3 months') AND date(current_date, '-3 months', 'start of year','-1 years', '+3 months', '+1 years', '-1 days')",
+      "mysql": "to be translated",
+      "id": "BookSQL"
+    },
+    {
+      "postgres": "CREATE TABLE client_information ( client_id smallserial NOT NULL, first_name character varying(50), last_name character varying(50), full_name character varying(101) GENERATED ALWAYS AS (CASE WHEN first_name IS NULL THEN last_name WHEN last_name IS NULL THEN first_name ELSE first_name || ' ' || last_name END) STORED, PRIMARY KEY (client_id) )",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "sqlite": "select sum(credit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where account_type in ('Income','Other Income') and transaction_date BETWEEN date(current_date, 'start of year', '+7 month') AND date(current_date, 'start of year', '+8 month', '-1 day') and T1.customers = \"Michael Reese\"",
+      "mysql": "to be translated",
+      "id": "BookSQL"
+    },
+    {
+      "sqlite": "SELECT SUM(IIF(ShipDate LIKE '6/%/18' AND `Sales Channel` = 'Online', 1, 0)) FROM `Sales Orders`",
+      "postgres": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "sqlite": "select distinct transaction_id from master_txn_table where transaction_type = 'bill' and customers = \"Dakota Acevedo\" and product_service = \"Medical services\" and transaction_date BETWEEN date(current_date, '-3 months', 'start of year','-1 years', '+3 months') AND date(current_date, '-3 months', 'start of year','-1 years', '+3 months', '+1 years', '-1 days')",
+      "mysql": "to be translated",
+      "id": "BookSQL"
+    },
+    {
+      "sqlite": "SELECT SUM(CASE WHEN T3.depart < 0 THEN units ELSE 0 END) AS sum FROM sales_in_weather AS T1 INNER JOIN relation AS T2 ON T1.store_nbr = T2.store_nbr INNER JOIN weather AS T3 ON T2.station_nbr = T3.station_nbr WHERE T2.store_nbr = 3 AND SUBSTR(T1.`date`, 1, 4) = '2012' AND T1.item_nbr = 5",
+      "postgres": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "sqlite": "SELECT strftime('%Y', `Date received`), COUNT(`Date received`) FROM events WHERE product = 'Credit card' AND issue = 'Overlimit fee' GROUP BY strftime('%Y', `Date received`) HAVING COUNT(`Date received`)",
+      "postgres": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "sqlite": "SELECT 100 * (CAST(REPLACE(SUBSTR(T2.maxsalary, 4), ',', '') AS REAL) - CAST(REPLACE(SUBSTR(T1.salary, 4), ',', '') AS REAL)) / CAST(REPLACE(SUBSTR(T1.salary, 4), ',', '') AS REAL) AS per FROM employee AS T1 INNER JOIN position AS T2 ON T1.positionID = T2.positionID WHERE T1.firstname = 'Jose' AND T1.lastname = 'Rodriguez'",
+      "postgres": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "sqlite": "select product_service, sum(debit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where transaction_date BETWEEN date(current_date, '-3 months', 'start of year', '+3 months') AND date(current_date, '-3 months', 'start of year','+1 year', '+3 months', '-1 day') and account_type in ('Expense','Other Expense') group by product_service",
+      "mysql": "to be translated",
+      "id": "BookSQL"
+    },
+    {
+      "postgres": "CREATE OR REPLACE FUNCTION GapFillInternal(s anyelement, v anyelement) RETURNS anyelement LANGUAGE plpgsql AS $$ BEGIN IF s IS NULL AND v IS NULL THEN RETURN NULL; ELSIF v IS NULL THEN RETURN s; ELSE RETURN v; END IF; END; $$",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "postgres": "SELECT * FROM orders WHERE customer_id = 1 OR product_id = 'P202' ORDER BY RANK() OVER(ORDER BY CASE WHEN customer_id = 1 THEN 1 ELSE 2 END) FETCH FIRST ROW WITH TIES",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "sqlite": "SELECT MAX(CAST(T1.`Free Meal Count (Ages 5-17)` AS REAL) / T1.`Enrollment (Ages 5-17)`) FROM frpm AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds WHERE CAST(T2.NumGE1500 AS REAL) / T2.NumTstTakr > 0.3",
+      "mysql": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "sqlite": "SELECT CAST(COUNT(DISTINCT T2.inspection_id) AS REAL) / 5, T1.first_name, T1.last_name FROM employee AS T1 INNER JOIN inspection AS T2 ON T1.employee_id = T2.employee_id WHERE T1.title = 'Sanitarian' ORDER BY T1.salary DESC LIMIT 5",
+      "mysql": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "postgres": "SELECT (select r.relname from pg_class r where r.oid = c.confrelid) as base_table, a.attname as base_col, (select r.relname from pg_class r where r.oid = c.conrelid) as referencing_table, UNNEST((select array_agg(attname) from pg_attribute where attrelid = c.conrelid and array[attnum] <@ c.conkey)) as referencing_col, pg_get_constraintdef(c.oid) contraint_sql FROM pg_constraint c join pg_attribute a on c.confrelid=a.attrelid and a.attnum = ANY(confkey) WHERE c.confrelid = (select oid from pg_class where relname = 'users') AND c.confrelid!=c.conrelid",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "sqlite": "\"select sum(credit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where customers = \"\"Katie Cox\"\" and transaction_date \"BETWEEN date(current_date, 'start of year') AND date(current_date, 'start of year', '+1 month', '-1 day') \" and account_type in ('Income','Other Income')\"",
+      "mysql": "to be translated",
+      "id": "BookSQL"
+    },
+    {
+      "postgres": "DO $do$ DECLARE var RECORD; BEGIN var := ROW( ARRAY[NULL]::transactions_1k[], ARRAY[NULL]::customers[] ); SELECT ARRAY(SELECT t FROM transactions_1k t LIMIT 1) INTO var.f1; SELECT ARRAY(SELECT c FROM customers c LIMIT 1) INTO var.f2; RAISE NOTICE 'Transaction: %', var.f1[1]; RAISE NOTICE 'Customer: %', var.f2[1]; END $do$",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "postgres": "DO $do$ DECLARE var RECORD; BEGIN var := ROW( ARRAY[NULL]::transactions_1k[], ARRAY[NULL]::customers[] ); SELECT ARRAY(SELECT t FROM transactions_1k t LIMIT 1) INTO var.f1; SELECT ARRAY(SELECT c FROM customers c LIMIT 1) INTO var.f2; RAISE NOTICE 'Transaction: %', var.f1[1]; RAISE NOTICE 'Customer: %', var.f2[1]; END $do$",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "postgres": "SELECT rs.raceId as race_id, (SELECT string_agg(constructorId::TEXT, ',' ORDER BY res.resultId) FROM results res WHERE res.raceId = rs.raceId) as constructor_ids, (SELECT string_agg(p.stop::TEXT, ', ' ORDER BY p.raceId) FROM pitstops p WHERE rs.raceId = p.raceId) AS stops FROM races rs",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "postgres": "WITH labeled_ends AS (SELECT lag(sa.ts) OVER (PARTITION BY sa.superhero_id, sa.activity_code ORDER BY sa.ts) = sa.ts - interval '5' minute IS NOT TRUE AS begins_period, sa.ts, lead(sa.ts) OVER (PARTITION BY sa.superhero_id, sa.activity_code ORDER BY sa.ts) = sa.ts + interval '5' minute IS NOT TRUE AS ends_period, sa.superhero_id, sa.activity_code FROM superhero_activities sa), periods AS (SELECT labeled_ends.ts, CASE WHEN labeled_ends.ends_period THEN labeled_ends.ts ELSE lead(labeled_ends.ts) OVER (PARTITION BY labeled_ends.superhero_id, labeled_ends.activity_code ORDER BY labeled_ends.ts) END AS period_end, labeled_ends.superhero_id, labeled_ends.activity_code, labeled_ends.begins_period FROM labeled_ends WHERE labeled_ends.begins_period OR labeled_ends.ends_period) SELECT tstzrange(periods.ts, periods.period_end, '[]') AS valid_interval, periods.superhero_id, periods.activity_code FROM periods WHERE periods.begins_period ORDER BY periods.superhero_id, periods.activity_code, periods.ts",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "sqlite": "SELECT CAST(COUNT(DISTINCT T2.inspection_id) AS REAL) / 5, T1.first_name, T1.last_name FROM employee AS T1 INNER JOIN inspection AS T2 ON T1.employee_id = T2.employee_id WHERE T1.title = 'Sanitarian' ORDER BY T1.salary DESC LIMIT 5",
+      "mysql": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "postgres": "CREATE OR REPLACE FUNCTION get_user_ages() RETURNS setof numeric AS $BODY$ DECLARE curr_age text; BEGIN FOR curr_age IN SELECT Age FROM users LOOP BEGIN RETURN NEXT curr_age::numeric; EXCEPTION WHEN OTHERS THEN NULL; END; END LOOP; END $BODY$ LANGUAGE plpgsql; SELECT * FROM get_user_ages()",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "postgres": "CREATE OR REPLACE FUNCTION trigger_function() RETURNS TRIGGER AS $BODY$ BEGIN INSERT INTO public.destination_table ( created_at, match_id, player_id, event_type, url, user_id ) VALUES ( NEW.created_at, NEW.match_id, NEW.player_id, NEW.event_type, split_part(NEW.url::text, '?', 1), ((NEW.data -> 'local_storage') -> 'data') ->> 'user_id' ); RETURN NEW; END; $BODY$ LANGUAGE plpgsql",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "sqlite": "SELECT SUM(CASE WHEN T2.category_name LIKE 'Active Life' THEN 1 ELSE 0 END) AS \"num\" , CAST(SUM(CASE WHEN T3.city LIKE 'Phoenix' THEN 1 ELSE 0 END) AS REAL) * 100 / ( SELECT COUNT(T3.review_count) FROM Business_Categories AS T1 INNER JOIN Categories AS T2 ON T1.category_id = T2.category_id INNER JOIN Business AS T3 ON T1.business_id = T3.business_id WHERE T3.review_count LIKE 'Low' ) FROM Business_Categories AS T1 INNER JOIN Categories AS T2 ON T1.category_id = T2.category_id INNER JOIN Business AS T3 ON T1.business_id = T3.business_id",
+      "mysql": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "postgres": "SELECT json_object_agg(label, groupedMolecules) AS molecules_by_label FROM ( SELECT label, json_agg( json_build_object( 'molecule_id', molecule.molecule_id, 'atoms', ( SELECT json_agg( json_build_object( 'atom_id', atom.atom_id, 'element', atom.element ) ) FROM atom WHERE atom.molecule_id = molecule.molecule_id ), 'bonds', ( SELECT json_agg( json_build_object( 'bond_id', bond.bond_id, 'bond_type', bond.bond_type ) ) FROM bond WHERE bond.molecule_id = molecule.molecule_id ) ) ) AS groupedMolecules FROM molecule GROUP BY label ) AS sub",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "sqlite": "SELECT ( SELECT SUM(units) FROM sales_in_weather AS T1 INNER JOIN relation AS T2 ON T1.store_nbr = T2.store_nbr INNER JOIN weather AS T3 ON T2.station_nbr = T3.station_nbr WHERE T1.item_nbr = 16 AND T1.`date` LIKE '%2012%' AND T1.store_nbr = 5 GROUP BY tmax ORDER BY T3.tmax DESC LIMIT 1 ) - ( SELECT SUM(units) FROM sales_in_weather AS T1 INNER JOIN relation AS T2 ON T1.store_nbr = T2.store_nbr INNER JOIN weather AS T3 ON T2.station_nbr = T3.station_nbr WHERE T1.item_nbr = 16 AND T1.`date` LIKE '%2012%' AND T1.store_nbr = 6 GROUP BY tmax ORDER BY T3.tmax DESC LIMIT 1 )",
+      "postgres": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "sqlite": "SELECT DISTINCT COUNT ( DISTINCT t4.citingpaperid ) , t3.venueid FROM paperkeyphrase AS t2 JOIN keyphrase AS t1 ON t2.keyphraseid = t1.keyphraseid JOIN paper AS t3 ON t3.paperid = t2.paperid JOIN cite AS t4 ON t3.paperid = t4.citedpaperid WHERE t1.keyphrasename = \"NLP\" GROUP BY t3.venueid ORDER BY COUNT ( DISTINCT t4.citingpaperid ) DESC",
+      "postgres": "to be translated",
+      "id": "CSpider"
+    },
+    {
+      "postgres": "EXPLAIN VERBOSE SELECT generate_series_monthly('2024-01-01', '2024-05-01')",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "sqlite": "select product_service, sum(debit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where transaction_date BETWEEN date(current_date, '-3 months', 'start of year', '+3 months') AND date(current_date, '-3 months', 'start of year','+1 year', '+3 months', '-1 day') and account_type in ('Expense','Other Expense') group by product_service",
+      "mysql": "to be translated",
+      "id": "BookSQL"
+    },
+    {
+      "sqlite": "SELECT MAX(strftime('%J', `Ship Date`) - strftime('%J', `Order Date`)) AS longestTimeDays FROM people AS T1 INNER JOIN central_superstore AS T2 ON T1.`Customer ID` = T2.`Customer ID` WHERE T1.`Customer Name` = 'Aimee Bixby'",
+      "postgres": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "sqlite": "SELECT DISTINCT COUNT ( DISTINCT t4.citingpaperid ) , t3.venueid FROM paperkeyphrase AS t2 JOIN keyphrase AS t1 ON t2.keyphraseid = t1.keyphraseid JOIN paper AS t3 ON t3.paperid = t2.paperid JOIN cite AS t4 ON t3.paperid = t4.citedpaperid WHERE t1.keyphrasename = \"NLP\" GROUP BY t3.venueid ORDER BY COUNT ( DISTINCT t4.citingpaperid ) DESC",
+      "postgres": "to be translated",
+      "id": "CSpider"
+    },
+    {
+      "sqlite": "SELECT CAST(SUM(T2.`Order Quantity`) AS REAL) / 12 FROM Products AS T1 INNER JOIN `Sales Orders` AS T2 ON T2._ProductID = T1.ProductID WHERE T1.`Product Name` = 'Ornaments' AND T2.OrderDate LIKE '%/%/18'",
+      "postgres": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "sqlite": "select count(distinct transaction_id) from master_txn_table where customers = \"Stephanie Edwards\" and transaction_type = 'invoice' and open_balance >0 and transaction_date BETWEEN date(current_date, '-3 months', 'start of year', '+3 months') AND date(current_date, '-3 months', 'start of year','+1 year', '+3 months', '-1 day')",
+      "mysql": "to be translated",
+      "id": "BookSQL"
+    },
+    {
+      "sqlite": "SELECT AVG(STRFTIME('%Y', date('NOW')) - STRFTIME('%Y', T1.Birthday)) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.`T-CHO` >= 250 AND T1.SEX = 'M'",
+      "postgres": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "sqlite": "select count(distinct transaction_id) from master_txn_table where customers = \"Stephanie Edwards\" and transaction_type = 'invoice' and open_balance >0 and transaction_date BETWEEN date(current_date, '-3 months', 'start of year', '+3 months') AND date(current_date, '-3 months', 'start of year','+1 year', '+3 months', '-1 day')",
+      "mysql": "to be translated",
+      "id": "BookSQL"
+    },
+    {
+      "sqlite": "SELECT 100 * (CAST(REPLACE(SUBSTR(T2.maxsalary, 4), ',', '') AS REAL) - CAST(REPLACE(SUBSTR(T1.salary, 4), ',', '') AS REAL)) / CAST(REPLACE(SUBSTR(T1.salary, 4), ',', '') AS REAL) AS per FROM employee AS T1 INNER JOIN position AS T2 ON T1.positionID = T2.positionID WHERE T1.firstname = 'Jose' AND T1.lastname = 'Rodriguez'",
+      "postgres": "to be translated",
+      "id": "BIRD"
+    },
+    {
+      "postgres": "CREATE OR REPLACE FUNCTION get_user_ages() RETURNS setof numeric AS $BODY$ DECLARE curr_age text; BEGIN FOR curr_age IN SELECT Age FROM users LOOP BEGIN RETURN NEXT curr_age::numeric; EXCEPTION WHEN OTHERS THEN NULL; END; END LOOP; END $BODY$ LANGUAGE plpgsql; SELECT * FROM get_user_ages()",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    },
+    {
+      "postgres": "CREATE OR REPLACE FUNCTION get_user_ages() RETURNS setof numeric AS $BODY$ DECLARE curr_age text; BEGIN FOR curr_age IN SELECT Age FROM users LOOP BEGIN RETURN NEXT curr_age::numeric; EXCEPTION WHEN OTHERS THEN NULL; END; END LOOP; END $BODY$ LANGUAGE plpgsql; SELECT * FROM get_user_ages()",
+      "mysql": "to be translated",
+      "id": "BIRD Critic (PostgreSQL)"
+    }
+  ]
