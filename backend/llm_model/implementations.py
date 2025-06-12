@@ -5,7 +5,6 @@ import openai
 from threading import Thread
 from typing import Dict, Any, List, Union, AsyncGenerator
 from langchain.schema import SystemMessage, HumanMessage
-from transformers import pipeline
 
 from llm_model.base import BaseLLM
 from config.logging_config import logger
@@ -140,7 +139,7 @@ class LocalLLM(BaseLLM):
     def __init__(self, model_config: Dict[str, Any]):
         super().__init__(model_config)
         import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
+        from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer, pipeline
         # Determine device
         if torch.cuda.is_available():
             device = "cuda"
