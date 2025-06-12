@@ -41,7 +41,66 @@ BookSQL：
         filename="BookSQL/accounting.sqlite", local_dir="downloads", 
         repo_type="dataset"
     )
+    exit()
     ```
 
-### 检查 Docker 环境
+### 配置数据库 Docker 环境
 
+首先确保 Docker daemon 正在运行
+
+拉取 MySQL 8.4.0 镜像
+
+```bash
+docker pull mysql:8.4.0
+```
+
+后台启动容器
+
+```bash
+docker run -d \
+    --name mysql-container \
+    -p 13306:3306 \
+    -e MYSQL_ROOT_PASSWORD=mysql_root_password \
+    mysql:8.4.0
+```
+
+> 测试环境，方便起见，密码全部编码在命令和代码中，实际工作中不要这样干
+
+拉取 PostgreSQL 14.18 镜像
+
+```bash
+docker pull postgres:14.18
+```
+
+后台启动容器
+
+```bash
+docker run -d \
+  --name pg-container \
+  -p 15432:5432 \
+  -e POSTGRES_PASSWORD=postgres_password \
+  postgres:14.18
+```
+
+安装 MySQL 客户端和 PostgreSQL 客户端
+
+```bash
+sudo apt update
+sudo apt install default-mysql-client postgresql-client
+```
+
+验证安装和容器启动情况，尝试连接到容器
+
+```bash
+mysql -h 127.0.0.1 -P 13306 -u root -pmysql_root_password -e "SHOW DATABASES; SELECT DATABASE();"
+PGPASSWORD='postgres_password' psql -h 127.0.0.1 -p 15432 -U postgres -d postgres -c "SELECT version(); SELECT current_database();"
+```
+
+### 查看并导入数据
+
+需要安装两个工具从 sqlite3 数据库迁移到 MySQL 数据库和 Postgresql 数据库
+
+```bash
+pip install sqlite3-to-mysql # 之前应该已经安装过了
+sudo apt install pgloader
+```
