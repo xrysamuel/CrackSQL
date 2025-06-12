@@ -374,6 +374,7 @@ backend/instance/
 backend/migrations
 backend/config/init_config.py
 backend/config/init_config.yaml
+example/init_config.yaml
 backend/local_models
 instance
 webui/node_modules
