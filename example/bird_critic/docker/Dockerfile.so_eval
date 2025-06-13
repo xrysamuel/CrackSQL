@@ -1,0 +1,18 @@
+# Dockerfile.python
+FROM python:3.10
+
+# Set the main working directory to /app
+WORKDIR /app
+
+# Copy requirements.txt and install dependencies
+COPY ./docker/requirements.txt /app/
+RUN pip install -r /app/requirements.txt
+
+# Install MySQL client
+RUN apt-get update && apt-get install -y default-mysql-client
+
+# Install the PostgreSQL client so 'dropdb', 'createdb', and 'psql' are available
+RUN apt-get update && apt-get install -y postgresql-client
+
+# Set entrypoint to keep the container running for testing
+CMD ["tail", "-f", "/dev/null"]

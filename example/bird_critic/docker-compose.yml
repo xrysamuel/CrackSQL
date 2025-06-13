@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  mysql:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.mysql
+    container_name: bird_critic_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "mysql_root_password"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql_table_dumps:/docker-entrypoint-initdb.d/mysql_table_dumps
+    ports:
+      - "13306:3306"
+
+  postgresql:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.postgresql
+    container_name: bird_critic_postgresql
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: "postgres_password"
+      TZ: "Asia/Hong_Kong"
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+      - ./postgre_table_dumps:/docker-entrypoint-initdb.d/postgre_table_dumps
+    command:
+      - "-c"
+      - "max_connections=300"
+      - "-c"
+      - "shared_buffers=256MB"
+    ports:
+      - "15432:5432"
+
+  so_eval_env:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.so_eval
+    container_name: so_eval_env
+    volumes:
+      - ./:/app/
+      - ./postgre_table_dumps:/app/postgre_table_dumps
+      - ./mysql_table_dumps:/app/mysql_table_dumps
+    depends_on:
+      - mysql
+      - postgresql
+    command: ["tail", "-f", "/dev/null"]
+
+volumes:
+  mysql_data:
+  postgresql_data:
