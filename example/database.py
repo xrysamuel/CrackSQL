@@ -4,6 +4,8 @@ import os
 import sqlite3
 import re
 import time
+import textwrap
+import difflib
 from dataclasses import dataclass, field
 from typing import Optional, Dict, Any, Tuple
 from abc import ABC, abstractmethod
@@ -30,12 +32,46 @@ class ExecutionResult:
     result_tables: Dict[str, pd.DataFrame] = field(default_factory=dict)
     error_message: Optional[str] = None
 
+    def _normalize_tables(self, tables: Dict[str, pd.DataFrame]):
+        normalized_tables = {key.lower(): value for key, value in tables.items()}
+        return dict(sorted(normalized_tables.items()))
+
+    @property
+    def normalized_database_tables(self):
+        return self._normalize_tables(self.database_tables)
+    
+    @property
+    def normalized_result_tables(self):
+        return self._normalize_tables(self.result_tables)
+
+
+    def __eq__(self, other):
+        if not isinstance(other, ExecutionResult):
+            return NotImplemented
+
+        if self.error_message is not None or other.error_message is not None:
+            return False
+
+        if self.database_tables.keys() != other.database_tables.keys():
+            return False
+        for key in self.database_tables:
+            if not self.database_tables[key].equals(other.database_tables[key]):
+                return False
+
+        if self.result_tables.keys() != other.result_tables.keys():
+            return False
+        for key in self.result_tables:
+            if not self.result_tables[key].equals(other.result_tables[key]):
+                return False
+
+        return True
+
     def __str__(self) -> str:
         parts = []
 
         if self.database_tables:
             parts.append("--- Database Tables ---")
-            for name, df in self.database_tables.items():
+            for name, df in self.normalized_database_tables.items():
                 parts.append(f"Table: {name}")
                 parts.append(df.head(5).to_string(index=False)) # Display first 5 rows, no index
                 if len(df) > 5:
@@ -44,7 +80,7 @@ class ExecutionResult:
 
         if self.result_tables:
             parts.append("--- Result Tables ---")
-            for name, df in self.result_tables.items():
+            for name, df in self.normalized_result_tables.items():
                 parts.append(f"Table: {name}")
                 parts.append(df.head(5).to_string(index=False)) # Display first 5 rows, no index
                 if len(df) > 5:
@@ -63,7 +99,7 @@ class ExecutionResult:
 class DatabaseSystem(ABC):
     @property
     @abstractmethod
-    def DEFAULT_CONFIG(self) -> Dict[str, Any]:
+    def config(self) -> Dict[str, Any]:
         pass
 
     @classmethod
@@ -73,7 +109,7 @@ class DatabaseSystem(ABC):
 
 
 class MySQLDatabaseSystem(DatabaseSystem):
-    DEFAULT_CONFIG = {
+    config = {
         "host": "127.0.0.1",
         "port": 13306,
         "user": "root",
@@ -85,7 +121,7 @@ class MySQLDatabaseSystem(DatabaseSystem):
 
     @classmethod
     def get_connection(
-        cls, db_config=DEFAULT_CONFIG
+        cls, db_config=config
     ) -> Tuple[Optional[MySQLConnection], Optional[str]]:
         db_name = db_config["db_name"]
         connection = cls._connections.get(db_name)
@@ -111,7 +147,8 @@ class MySQLDatabaseSystem(DatabaseSystem):
             logging.info(f"Reusing existing connection for MySQL database: {db_name}")
         return connection, None  # Return connection and no error
     
-    def execute(cls, sql: str, db_config=DEFAULT_CONFIG) -> ExecutionResult:
+    @classmethod
+    def execute(cls, sql: str, db_config=config) -> ExecutionResult:
         db_name = db_config["db_name"]
         connection, connect_error = cls.get_connection(db_config)
 
@@ -125,13 +162,14 @@ class MySQLDatabaseSystem(DatabaseSystem):
         try:
             with connection.cursor() as cursor:
                 # Start a transaction to ensure no permanent changes
-                connection.begin()
+                connection.begin() # For explicitness
+
                 try:
                     # Execute the SQL query
                     cursor.execute(sql)
 
-                    # If it's a SELECT statement, fetch results
-                    if sql.strip().upper().startswith("SELECT"):
+                    # Fetch results
+                    if cursor.description: # Check if there are results to fetch (e.g., from a SELECT)
                         result = cursor.fetchall()
                         if result:
                             columns = [desc[0] for desc in cursor.description]
@@ -172,14 +210,14 @@ class MySQLDatabaseSystem(DatabaseSystem):
         if db_name:
             if db_name in cls._connections:
                 connection = cls._connections.pop(db_name)
-                if connection.is_connected():
+                if connection.open:
                     connection.close()
                     logging.info(f"MySQL connection to '{db_name}' is closed.")
             else:
                 logging.warning(f"No active connection found for database: {db_name}")
         else:  # Close all connections
             for db_name, connection in list(cls._connections.items()):
-                if connection.is_connected():
+                if connection.open:
                     connection.close()
                     logging.info(f"MySQL connection to '{db_name}' is closed.")
                 cls._connections.pop(db_name)
@@ -187,7 +225,7 @@ class MySQLDatabaseSystem(DatabaseSystem):
 
 
 class PGSQLDatabaseSystem(DatabaseSystem):
-    DEFAULT_CONFIG = {
+    config = {
         "host": "127.0.0.1",
         "port": 15432,
         "user": "root",
@@ -199,7 +237,7 @@ class PGSQLDatabaseSystem(DatabaseSystem):
 
     @classmethod
     def get_connection(
-        cls, db_config=DEFAULT_CONFIG
+        cls, db_config=config
     ) -> Tuple[Optional[PGSQLConnection], Optional[str]]:
         db_name = db_config["db_name"]
         connection = cls._connections.get(db_name)
@@ -226,7 +264,7 @@ class PGSQLDatabaseSystem(DatabaseSystem):
         return connection, None
 
     @classmethod
-    def execute(cls, sql: str, db_config=DEFAULT_CONFIG) -> ExecutionResult:
+    def execute(cls, sql: str, db_config=config) -> ExecutionResult:
         db_name = db_config["db_name"]
         connection, connect_error = cls.get_connection(db_config)
 
@@ -240,13 +278,13 @@ class PGSQLDatabaseSystem(DatabaseSystem):
         try:
             with connection.cursor() as cursor:
                 # Start a transaction to ensure no permanent changes
-                connection.autocommit = False # Ensure we can manually rollback
+                connection.autocommit = False # For explicitness
 
                 try:
                     # Execute the SQL query
                     cursor.execute(sql)
 
-                    # If it's a SELECT statement, fetch results
+                    # Fetch results
                     if cursor.description: # Check if there are results to fetch (e.g., from a SELECT)
                         result = cursor.fetchall()
                         if result:
@@ -263,7 +301,7 @@ class PGSQLDatabaseSystem(DatabaseSystem):
 
                     for table_name in tables:
                         try:
-                            cursor.execute(f'SELECT * FROM "{table_name}"') # Table names in PG are case-sensitive and might need quotes
+                            cursor.execute(f'SELECT * FROM "{table_name}"')
                             table_data = cursor.fetchall()
                             columns = [desc.name for desc in cursor.description]
                             database_tables[table_name] = pd.DataFrame(table_data, columns=columns)
@@ -296,7 +334,7 @@ class PGSQLDatabaseSystem(DatabaseSystem):
                     logging.info(f"PostgreSQL connection to '{db_name}' is closed.")
             else:
                 logging.warning(f"No active connection found for database: {db_name}")
-        else: 
+        else:   # Close all connections
             for db_name, connection in list(cls._connections.items()):
                 if not connection.closed:
                     connection.close()
@@ -305,8 +343,31 @@ class PGSQLDatabaseSystem(DatabaseSystem):
             logging.info("All PostgreSQL connections closed.")
 
 if __name__ == "__main__":
-    sql = "SELECT rs.raceId as race_id, (SELECT string_agg(constructorId::TEXT, ',' ORDER BY res.resultId) FROM results res WHERE res.raceId = rs.raceId) as constructor_ids, (SELECT string_agg(p.stop::TEXT, ', ' ORDER BY p.raceId) FROM pitstops p WHERE rs.raceId = p.raceId) AS stops FROM races rs"
-    config = PGSQLDatabaseSystem.DEFAULT_CONFIG
-    config["db_name"] = "formula_1"
-    print(PGSQLDatabaseSystem.execute(sql))
-    PGSQLDatabaseSystem.close()
+    pgsql_sql = "SELECT rs.raceId as race_id, (SELECT string_agg(constructorId::TEXT, ',' ORDER BY res.resultId) FROM results res WHERE res.raceId = rs.raceId) as constructor_ids, (SELECT string_agg(p.stop::TEXT, ', ' ORDER BY p.raceId) FROM pitstops p WHERE rs.raceId = p.raceId) AS stops FROM races rs"
+    mysql_sql = textwrap.dedent("""SELECT 
+        rs.raceId AS race_id, 
+        (SELECT GROUP_CONCAT(constructorId ORDER BY res.resultId) 
+        FROM results res 
+        WHERE res.raceId = rs.raceId) AS constructor_ids, 
+        (SELECT GROUP_CONCAT(p.stop ORDER BY p.raceId) 
+        FROM pitStops p
+        WHERE rs.raceId = p.raceId) AS stops 
+    FROM 
+        races rs;""")
+    PGSQLDatabaseSystem.config["db_name"] = "formula_1"
+    MySQLDatabaseSystem.config["db_name"] = "formula_1"
+
+    try:
+        result_pgsql = PGSQLDatabaseSystem.execute(pgsql_sql)
+        result_mysql = MySQLDatabaseSystem.execute(mysql_sql)
+        print("==== MySQL Result ==== ")
+        print(result_mysql)
+        print("==== PGSQL Result ==== ")
+        print(result_pgsql)
+        print("==== Equivalence ==== ")
+        print(result_mysql == result_pgsql)
+        diff = difflib.unified_diff(str(result_mysql).lower().splitlines(), str(result_pgsql).lower().splitlines())
+        print("\n".join(diff))
+    finally:
+        PGSQLDatabaseSystem.close()
+        MySQLDatabaseSystem.close()
