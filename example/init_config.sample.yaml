@@ -11,13 +11,13 @@ LLM_MODELS:
 #    path: "./local_models/gpt-4o"           # Local model path. Please replace with the actual path of the local model.
     description: "Qwen LLM模型，用于生成文本"  # Model description
     temperature: 0.7                        # Temperature for text generation
-    max_tokens: 128000                      # Maximum tokens for generation
+    max_tokens: 8192                      # Maximum tokens for generation
 
 
 # Embedding model configuration
 EMBEDDING_MODELS:
   # OpenAI Embedding model
-  - name: "text-embedding-v4"          # Model name
+  - name: "text-embedding-v1"          # Model name
     deployment_type: "aliyun"                # Deployment type: cloud or local or aliyun
     category: "embedding"                   # Model category
     api_base: "https://dashscope.aliyuncs.com/compatible-mode/v1"   # API base URL
@@ -32,7 +32,7 @@ KNOWLEDGE_BASES:
   - kb_name: "mysql_knowledge"              # Knowledge base name
     db_type: "mysql"                        # Database type
     kb_info: "MySQL数据库知识库，包含MySQL的关键字、函数、操作符等信息"  # Knowledge base description
-    embedding_model: "text-embedding-v4"  # Embedding model to use
+    embedding_model: "text-embedding-v1"  # Embedding model to use
     knowledge_files:                        # Knowledge files to import
       - "../data/processed_document/mysql_8_kb.json"  # Knowledge file path
 
@@ -40,7 +40,7 @@ KNOWLEDGE_BASES:
   - kb_name: "postgresql_knowledge"         # Knowledge base name
     db_type: "postgresql"                   # Database type
     kb_info: "PostgreSQL数据库知识库，包含PostgreSQL的关键字、函数、操作符等信息"  # Knowledge base description
-    embedding_model: "text-embedding-v4"  # Embedding model to use
+    embedding_model: "text-embedding-v1"  # Embedding model to use
     knowledge_files:                        # Knowledge files to import
       - "../data/processed_document/pg_14_kb.json"
 
@@ -48,6 +48,6 @@ KNOWLEDGE_BASES:
   - kb_name: "oracle_knowledge"             # Knowledge base name
     db_type: "oracle"                       # Database type
     kb_info: "Oracle 数据库知识库，包含Oracle的关键字、函数、操作符等信息"  # Knowledge base description
-    embedding_model: "text-embedding-v4"  # Embedding model to use
+    embedding_model: "text-embedding-v1"  # Embedding model to use
     knowledge_files:                        # Knowledge files to import
       - "../data/processed_document/oracle_11_kb.json"
