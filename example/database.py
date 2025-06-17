@@ -104,7 +104,21 @@ class DatabaseSystem(ABC):
 
     @classmethod
     @abstractmethod
+    def get_connection(cls, db_config=config):
+        pass
+
+    @classmethod
+    @abstractmethod
     def connect(cls, db_config: Dict[str, Any], db_name: Optional[str] = None):
+        pass
+
+    @classmethod
+    @abstractmethod
+    def execute(cls, sql: str, db_config=config) -> ExecutionResult:
+        pass
+
+    @classmethod
+    def close(cls, db_name: str = None):
         pass
 
 
