@@ -33,7 +33,10 @@ class ExecutionResult:
     error_message: Optional[str] = None
 
     def _normalize_tables(self, tables: Dict[str, pd.DataFrame]):
-        normalized_tables = {key.lower(): value for key, value in tables.items()}
+        normalized_tables = {}
+        for name, table in tables.items():
+            normalized_table = table.sort_values(by=list(table.columns)).reset_index(drop=True)
+            normalized_tables[name.lower()] = normalized_table
         return dict(sorted(normalized_tables.items()))
 
     @property
@@ -207,7 +210,7 @@ class MySQLDatabaseSystem(DatabaseSystem):
                     connection.rollback()
 
         except MySQLError as e:
-            logging.error(f"Error during SQL execution: {e}")
+            logging.error(f"Error during SQL execution.")
             error_message = str(e)
             # Ensure rollback if an error occurs outside the inner try block
             if connection.open:
@@ -326,7 +329,7 @@ class PGSQLDatabaseSystem(DatabaseSystem):
                     connection.rollback()
 
         except PGSQLError as e:
-            logging.error(f"Error during SQL execution: {e}")
+            logging.error(f"Error during SQL execution.")
             error_message = str(e)
             # Ensure rollback if an error occurs outside the inner try block
             if not connection.closed:
@@ -358,15 +361,11 @@ class PGSQLDatabaseSystem(DatabaseSystem):
 
 if __name__ == "__main__":
     pgsql_sql = "SELECT rs.raceId as race_id, (SELECT string_agg(constructorId::TEXT, ',' ORDER BY res.resultId) FROM results res WHERE res.raceId = rs.raceId) as constructor_ids, (SELECT string_agg(p.stop::TEXT, ', ' ORDER BY p.raceId) FROM pitstops p WHERE rs.raceId = p.raceId) AS stops FROM races rs"
-    mysql_sql = textwrap.dedent("""SELECT 
-        rs.raceId AS race_id, 
-        (SELECT GROUP_CONCAT(constructorId ORDER BY res.resultId) 
-        FROM results res 
-        WHERE res.raceId = rs.raceId) AS constructor_ids, 
-        (SELECT GROUP_CONCAT(p.stop ORDER BY p.raceId) 
-        FROM pitStops p
-        WHERE rs.raceId = p.raceId) AS stops 
-    FROM 
+    mysql_sql = textwrap.dedent("""SELECT
+        rs.raceId AS race_id,
+        (SELECT GROUP_CONCAT(res.constructorId ORDER BY res.resultId SEPARATOR ',') FROM results res WHERE res.raceId = rs.raceId) AS constructor_ids,
+        (SELECT GROUP_CONCAT(p.stop ORDER BY p.raceId SEPARATOR ', ') FROM pitStops p WHERE rs.raceId = p.raceId) AS stops
+    FROM
         races rs;""")
     PGSQLDatabaseSystem.config["db_name"] = "formula_1"
     MySQLDatabaseSystem.config["db_name"] = "formula_1"

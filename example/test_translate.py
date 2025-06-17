@@ -3,7 +3,7 @@ import logging
 import shutil
 import os
 import datetime
-from typing import Optional, List
+from typing import Optional, List, Tuple, Dict
 
 from dataset import (
     parse_sql_translation_pairs,
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 
-DATABASE_MAPPING = {
+DATABASE_MAPPING: Dict[str, Tuple[DatabaseSystem, str]] = {
     "mysql": (MySQLDatabaseSystem, "mysql_knowledge"),
     "postgresql": (PGSQLDatabaseSystem, "postgresql_knowledge")
     # "sqlite": TODO

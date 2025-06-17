@@ -55,6 +55,16 @@ PGPASSWORD='postgres_password' psql -h 127.0.0.1 -p 15432 -U root -d postgres -c
 docker compose down -v
 ```
 
+### 2.2 开始翻译
+
+运行
+
+```bash
+python test_translate.py
+```
+
+运行完毕之后，在 `output/test_translated_cracksql.json` 查看结果
+
 ## 3 在 BIRD 和 BookSQL 数据集上测试
 
 ### 3.1 下载数据集
