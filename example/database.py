@@ -20,84 +20,12 @@ import psycopg2
 from psycopg2._psycopg import connection as PGSQLConnection
 from psycopg2 import Error as PGSQLError
 
+from execution_result import ExecutionResult
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
-
-
-@dataclass
-class ExecutionResult:
-    database_tables: Dict[str, pd.DataFrame] = field(default_factory=dict)
-    result_tables: Dict[str, pd.DataFrame] = field(default_factory=dict)
-    error_message: Optional[str] = None
-
-    def _normalize_tables(self, tables: Dict[str, pd.DataFrame]):
-        normalized_tables = {}
-        for name, table in tables.items():
-            normalized_table = table.sort_values(by=list(table.columns)).reset_index(drop=True)
-            normalized_tables[name.lower()] = normalized_table
-        return dict(sorted(normalized_tables.items()))
-
-    @property
-    def normalized_database_tables(self):
-        return self._normalize_tables(self.database_tables)
-    
-    @property
-    def normalized_result_tables(self):
-        return self._normalize_tables(self.result_tables)
-
-
-    def __eq__(self, other):
-        if not isinstance(other, ExecutionResult):
-            return NotImplemented
-
-        if self.error_message is not None or other.error_message is not None:
-            return False
-
-        if self.database_tables.keys() != other.database_tables.keys():
-            return False
-        for key in self.database_tables:
-            if not self.database_tables[key].equals(other.database_tables[key]):
-                return False
-
-        if self.result_tables.keys() != other.result_tables.keys():
-            return False
-        for key in self.result_tables:
-            if not self.result_tables[key].equals(other.result_tables[key]):
-                return False
-
-        return True
-
-    def __str__(self) -> str:
-        parts = []
-
-        if self.database_tables:
-            parts.append("--- Database Tables ---")
-            for name, df in self.normalized_database_tables.items():
-                parts.append(f"Table: {name}")
-                parts.append(df.head(5).to_string(index=False)) # Display first 5 rows, no index
-                if len(df) > 5:
-                    parts.append(f"(... {len(df) - 5} more rows not shown)")
-                parts.append("") # Add an empty line for spacing
-
-        if self.result_tables:
-            parts.append("--- Result Tables ---")
-            for name, df in self.normalized_result_tables.items():
-                parts.append(f"Table: {name}")
-                parts.append(df.head(5).to_string(index=False)) # Display first 5 rows, no index
-                if len(df) > 5:
-                    parts.append(f"(... {len(df) - 5} more rows not shown)")
-                parts.append("") # Add an empty line for spacing
-
-        if self.error_message:
-            parts.append("--- Error Message ---")
-            parts.append(self.error_message)
-
-        if not parts:
-            return "ExecutionResult: No data or error message."
-
-        return "\n".join(parts)
 
 class DatabaseSystem(ABC):
     @property
@@ -143,7 +71,7 @@ class MySQLDatabaseSystem(DatabaseSystem):
         db_name = db_config["db_name"]
         connection = cls._connections.get(db_name)
 
-        if connection is None or not connection.is_connected():
+        if connection is None:
             logging.info(f"Attempting to connect to MySQL database: {db_name}")
             try:
                 connection = pymysql.connect(
@@ -163,14 +91,16 @@ class MySQLDatabaseSystem(DatabaseSystem):
         else:
             logging.info(f"Reusing existing connection for MySQL database: {db_name}")
         return connection, None  # Return connection and no error
-    
+
     @classmethod
     def execute(cls, sql: str, db_config=config) -> ExecutionResult:
         db_name = db_config["db_name"]
         connection, connect_error = cls.get_connection(db_config)
 
         if connection is None:
-            return ExecutionResult(error_message=f"Failed to get database connection: {connect_error}")
+            return ExecutionResult(
+                error_message=f"Failed to get database connection: {connect_error}"
+            )
 
         database_tables = {}
         result_tables = {}
@@ -179,14 +109,16 @@ class MySQLDatabaseSystem(DatabaseSystem):
         try:
             with connection.cursor() as cursor:
                 # Start a transaction to ensure no permanent changes
-                connection.begin() # For explicitness
+                connection.begin()  # For explicitness
 
                 try:
                     # Execute the SQL query
                     cursor.execute(sql)
 
                     # Fetch results
-                    if cursor.description: # Check if there are results to fetch (e.g., from a SELECT)
+                    if (
+                        cursor.description
+                    ):  # Check if there are results to fetch (e.g., from a SELECT)
                         result = cursor.fetchall()
                         if result:
                             columns = [desc[0] for desc in cursor.description]
@@ -202,9 +134,13 @@ class MySQLDatabaseSystem(DatabaseSystem):
                             cursor.execute(f"SELECT * FROM `{table_name}`")
                             table_data = cursor.fetchall()
                             columns = [desc[0] for desc in cursor.description]
-                            database_tables[table_name] = pd.DataFrame(table_data, columns=columns)
+                            database_tables[table_name] = pd.DataFrame(
+                                table_data, columns=columns
+                            )
                         except MySQLError as e:
-                            logging.warning(f"Could not retrieve data for table {table_name}: {e}")
+                            logging.warning(
+                                f"Could not retrieve data for table {table_name}: {e}"
+                            )
                 finally:
                     # Always roll back to ensure no permanent changes
                     connection.rollback()
@@ -270,14 +206,18 @@ class PGSQLDatabaseSystem(DatabaseSystem):
                     port=int(db_config["port"]),
                 )
                 cls._connections[db_name] = connection
-                logging.info(f"Successfully connected to PostgreSQL database: {db_name}")
+                logging.info(
+                    f"Successfully connected to PostgreSQL database: {db_name}"
+                )
             except PGSQLError as e:
                 logging.error(
                     f"Error while connecting to PostgreSQL database '{db_name}': {e}"
                 )
                 return None, str(e)
         else:
-            logging.info(f"Reusing existing connection for PostgreSQL database: {db_name}")
+            logging.info(
+                f"Reusing existing connection for PostgreSQL database: {db_name}"
+            )
         return connection, None
 
     @classmethod
@@ -286,7 +226,9 @@ class PGSQLDatabaseSystem(DatabaseSystem):
         connection, connect_error = cls.get_connection(db_config)
 
         if connection is None:
-            return ExecutionResult(error_message=f"Failed to get database connection: {connect_error}")
+            return ExecutionResult(
+                error_message=f"Failed to get database connection: {connect_error}"
+            )
 
         database_tables = {}
         result_tables = {}
@@ -295,14 +237,16 @@ class PGSQLDatabaseSystem(DatabaseSystem):
         try:
             with connection.cursor() as cursor:
                 # Start a transaction to ensure no permanent changes
-                connection.autocommit = False # For explicitness
+                connection.autocommit = False  # For explicitness
 
                 try:
                     # Execute the SQL query
                     cursor.execute(sql)
 
                     # Fetch results
-                    if cursor.description: # Check if there are results to fetch (e.g., from a SELECT)
+                    if (
+                        cursor.description
+                    ):  # Check if there are results to fetch (e.g., from a SELECT)
                         result = cursor.fetchall()
                         if result:
                             columns = [desc.name for desc in cursor.description]
@@ -321,9 +265,13 @@ class PGSQLDatabaseSystem(DatabaseSystem):
                             cursor.execute(f'SELECT * FROM "{table_name}"')
                             table_data = cursor.fetchall()
                             columns = [desc.name for desc in cursor.description]
-                            database_tables[table_name] = pd.DataFrame(table_data, columns=columns)
+                            database_tables[table_name] = pd.DataFrame(
+                                table_data, columns=columns
+                            )
                         except PGSQLError as e:
-                            logging.warning(f"Could not retrieve data for table {table_name}: {e}")
+                            logging.warning(
+                                f"Could not retrieve data for table {table_name}: {e}"
+                            )
                 finally:
                     # Always roll back to ensure no permanent changes
                     connection.rollback()
@@ -351,7 +299,7 @@ class PGSQLDatabaseSystem(DatabaseSystem):
                     logging.info(f"PostgreSQL connection to '{db_name}' is closed.")
             else:
                 logging.warning(f"No active connection found for database: {db_name}")
-        else:   # Close all connections
+        else:  # Close all connections
             for db_name, connection in list(cls._connections.items()):
                 if not connection.closed:
                     connection.close()
@@ -359,28 +307,38 @@ class PGSQLDatabaseSystem(DatabaseSystem):
                 cls._connections.pop(db_name)
             logging.info("All PostgreSQL connections closed.")
 
+
 if __name__ == "__main__":
     pgsql_sql = "SELECT rs.raceId as race_id, (SELECT string_agg(constructorId::TEXT, ',' ORDER BY res.resultId) FROM results res WHERE res.raceId = rs.raceId) as constructor_ids, (SELECT string_agg(p.stop::TEXT, ', ' ORDER BY p.raceId) FROM pitstops p WHERE rs.raceId = p.raceId) AS stops FROM races rs"
-    mysql_sql = textwrap.dedent("""SELECT
+    mysql_sql = textwrap.dedent(
+        """SELECT
         rs.raceId AS race_id,
         (SELECT GROUP_CONCAT(res.constructorId ORDER BY res.resultId SEPARATOR ',') FROM results res WHERE res.raceId = rs.raceId) AS constructor_ids,
         (SELECT GROUP_CONCAT(p.stop ORDER BY p.raceId SEPARATOR ', ') FROM pitStops p WHERE rs.raceId = p.raceId) AS stops
     FROM
-        races rs;""")
+        races rs;"""
+    )
     PGSQLDatabaseSystem.config["db_name"] = "formula_1"
     MySQLDatabaseSystem.config["db_name"] = "formula_1"
 
     try:
         result_pgsql = PGSQLDatabaseSystem.execute(pgsql_sql)
         result_mysql = MySQLDatabaseSystem.execute(mysql_sql)
-        print("==== MySQL Result ==== ")
+        def title(s):
+            s = str(s)
+            width = len(s) + 10
+            border_line = ("#" * (width + 4) + "\n") * 2
+            blank_line = ("##" + " " * width + "##\n") * 2
+            text_line = ("##" + " " * 5 + s + " " * 5 + "##\n")
+            return border_line + blank_line + text_line + blank_line + border_line
+        print(title("mysql result"))
         print(result_mysql)
-        print("==== PGSQL Result ==== ")
+        print(title("pgsql result"))
         print(result_pgsql)
-        print("==== Equivalence ==== ")
-        print(result_mysql == result_pgsql)
-        diff = difflib.unified_diff(str(result_mysql).lower().splitlines(), str(result_pgsql).lower().splitlines())
-        print("\n".join(diff))
+        print(title("equivalence"))
+        print("Result equivalence:", result_mysql.result_equals(result_pgsql))
+        print("Modification equivalence:", result_mysql.database_equals(result_pgsql))
+        print(result_mysql.compare(result_pgsql))
     finally:
         PGSQLDatabaseSystem.close()
         MySQLDatabaseSystem.close()

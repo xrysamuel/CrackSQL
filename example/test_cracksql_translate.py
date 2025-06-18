@@ -1,14 +1,15 @@
 import sys
 import logging
-import shutil
 import os
+import re
 import datetime
 from typing import Optional, List, Tuple, Dict
 
 from dataset import (
     parse_sql_translation_pairs,
     save_sql_translation_pairs,
-    SQLTranslationPair,
+    SQLTranslationPair, 
+    Dialect
 )
 from database import (
     MySQLDatabaseSystem,
@@ -16,6 +17,7 @@ from database import (
     DatabaseSystem,
     ExecutionResult
 )
+from test_args import get_test_translate_args
 
 sys.path.append("../backend")
 
@@ -28,12 +30,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-
-
-DATABASE_MAPPING: Dict[str, Tuple[DatabaseSystem, str]] = {
-    "mysql": (MySQLDatabaseSystem, "mysql_knowledge"),
-    "postgresql": (PGSQLDatabaseSystem, "postgresql_knowledge")
-    # "sqlite": TODO
+DIALECT_MAPPING: Dict[str, Tuple[DatabaseSystem, str, str]] = {
+    Dialect.MYSQL: (MySQLDatabaseSystem, "mysql", "mysql_knowledge"),
+    Dialect.POSTGRESQL: (PGSQLDatabaseSystem, "postgresql", "postgresql_knowledge")
+    # Dialect.SQLITE: TODO
 }
 
 POSSIBLE_DB_NAMES = [
@@ -55,24 +55,15 @@ def initialize_knowledge_base():
     initkb("./init_config.yaml")
     logging.info("Knowledge base initialized successfully")
 
-
-def translate_all(pairs: List[SQLTranslationPair]):
-    translated_pairs = []
-    for pair in pairs:
-        translated_pair = translate_pair(pair)
-        translated_pairs.append(translated_pair)
-    save_sql_translation_pairs("./output/test_translated_cracksql.json", translated_pairs)
-
-
-def translate_pair(pair: SQLTranslationPair) -> SQLTranslationPair:
-    tgt_db_system, tgt_kb_name = DATABASE_MAPPING.get(pair.tgt_dialect, (None, None))
-    src_db_system, src_kb_name = DATABASE_MAPPING.get(pair.src_dialect, (None, None))
-    if tgt_db_system is None:
+def cracksql_translate_pair(pair: SQLTranslationPair) -> SQLTranslationPair:
+    if not pair.tgt_dialect in DIALECT_MAPPING:
         logging.error(f"Target dialect '{pair.tgt_dialect}' is not supported.")
         return pair
-    if src_db_system is None:
+    if not pair.src_dialect in DIALECT_MAPPING:
         logging.error(f"Source dialect '{pair.src_dialect}' is not supported.")
         return pair
+    tgt_db_system, tgt_kb_name, tgt_dialect = DIALECT_MAPPING[pair.tgt_dialect]
+    src_db_system, src_kb_name, src_dialect = DIALECT_MAPPING[pair.src_dialect]
 
     vector_config = {
         "src_kb_name": src_kb_name,
@@ -98,8 +89,8 @@ def translate_pair(pair: SQLTranslationPair) -> SQLTranslationPair:
     translated_sql, model_ans_list, used_pieces, lift_histories = translate(
         model_name="qwen-plus",
         src_sql=pair.src_sql,
-        src_dialect=pair.src_dialect,
-        tgt_dialect=pair.tgt_dialect,
+        src_dialect=src_dialect,
+        tgt_dialect=tgt_dialect,
         target_db_config=tgt_db_system.config,
         vector_config=vector_config,
         out_dir="./output",
@@ -156,6 +147,8 @@ def comfirm_init_knowledge_base():
 
 
 if __name__ == "__main__":
+    args = get_test_translate_args(method="cracksql")
+
     # STEP 1
     to_continue = confirm_continue_if_instance_exists()
     if not to_continue:
@@ -163,8 +156,9 @@ if __name__ == "__main__":
         exit()
 
     # STEP 2
+    pattern = re.compile(args.id_pattern)
     pairs = parse_sql_translation_pairs(
-        "test.json", filter_func=lambda p: p.dataset_id == "BIRD Critic (PostgreSQL)"
+        args.input_file, filter_func=lambda p: re.match(pattern, p.dataset_id)
     )
 
     # STEP 3
@@ -176,4 +170,8 @@ if __name__ == "__main__":
         logging.info("Skipping knowledge base initialization.")
 
     # STEP 4
-    translate_all(pairs)
+    translated_pairs = []
+    for pair in pairs:
+        translated_pair = cracksql_translate_pair(pair)
+        translated_pairs.append(translated_pair)
+    save_sql_translation_pairs(args.output_file, translated_pairs)

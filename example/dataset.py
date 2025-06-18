@@ -1,5 +1,6 @@
 import json
 import os
+from enum import Enum
 from dataclasses import dataclass, field
 from typing import Optional, Callable
 import logging
@@ -9,17 +10,26 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+class Dialect(Enum):
+    POSTGRESQL = "postgresql"
+    MYSQL = "mysql"
+    SQLITE = "sqlite"
+
+NAME_TO_DIALECT = {
+    "postgresql": Dialect.POSTGRESQL,
+    "mysql": Dialect.MYSQL,
+    "sqlite": Dialect.SQLITE
+}
 
 @dataclass
 class SQLTranslationPair:
     index: int
-    src_dialect: str
-    tgt_dialect: str
+    src_dialect: Dialect
+    tgt_dialect: Dialect
     src_sql: str
     tgt_sql: Optional[str] = None
     dataset_id: str = ""
     additional_info: dict = field(default_factory=dict)
-
 
 def save_sql_translation_pairs(
     json_file_path: str, pairs: list[SQLTranslationPair]
@@ -42,8 +52,8 @@ def save_sql_translation_pairs(
     data_to_save = []
     for pair in sorted_pairs:
         item = {
-            pair.src_dialect: pair.src_sql,
-            pair.tgt_dialect: pair.tgt_sql,
+            pair.src_dialect.value: pair.src_sql,
+            pair.tgt_dialect.value: pair.tgt_sql,
             "id": pair.dataset_id
         }
         if pair.additional_info:
@@ -88,27 +98,27 @@ def parse_sql_translation_pairs(
 
         # Iterate through the keys to find the source dialect and SQL
         for key, value in item.items():
-            if key != "id" and value != "to be translated":
+            if key in NAME_TO_DIALECT:
                 src_dialect = key
                 src_sql = value
                 break  # Assuming only one source SQL per item
 
         # Determine target dialect and SQL
         for key, value in item.items():
-            if value == "to be translated":
+            if key in NAME_TO_DIALECT and key != src_dialect:
                 tgt_dialect = key
-                tgt_sql = None
+                tgt_sql = value
                 break
 
         # Determine dataset id
         dataset_id = item.get("id", None)
 
         # Check if item is valid
-        if src_dialect and src_sql and tgt_dialect and dataset_id:
+        if src_dialect and src_sql and tgt_dialect and tgt_sql and dataset_id:
             pair = SQLTranslationPair(
                 index=i,
-                src_dialect=src_dialect,
-                tgt_dialect=tgt_dialect,
+                src_dialect=NAME_TO_DIALECT[src_dialect],
+                tgt_dialect=NAME_TO_DIALECT[tgt_dialect],
                 src_sql=src_sql,
                 tgt_sql=tgt_sql,
                 dataset_id=dataset_id,
