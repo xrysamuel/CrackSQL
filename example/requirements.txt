@@ -46,3 +46,4 @@ pandas
 dashscope
 gdown
 sqlite3-to-mysql
+faker

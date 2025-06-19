@@ -56,7 +56,7 @@ def _normalize_tables(tables: Dict[str, pd.DataFrame]) -> Dict[str, pd.DataFrame
     normalized_tables = {}
     for name, table in tables.items():
         table.columns = [col.lower() for col in table.columns]
-        normalized_table = table.sort_values(by=list(table.columns)).reset_index(
+        normalized_table = table.sort_values(by=table.columns[0]).reset_index(
             drop=True
         )
         normalized_tables[name.lower()] = normalized_table
@@ -108,6 +108,9 @@ def _compare_dataframes(
                         continue
                     parts.append(f"@ (row: {row}, col: {col}): {a_name}: {val1}, {b_name}: {val2}")
                     count += 1
+
+    if len(parts) == 0:
+        parts.append(f"{table_name}: No differences between {a_name} and {b_name}")
     return parts
 
 

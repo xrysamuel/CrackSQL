@@ -1,10 +1,12 @@
 # CrackSQL 测试
 
+报告见 [Report](REPORT.md)
+
 ## 1 配置环境
 
-环境前提：debian / ubuntu，docker
+在开始之前，请确保您的系统是 Debian 或 Ubuntu，并且已经安装了 Docker。在开始之前，请确保您的系统是 Debian 或 Ubuntu，并且已经安装了 Docker。
 
-配置 python 环境
+首先，配置 python 环境
 
 ```bash
 conda create -n cracksql python=3.10
@@ -12,18 +14,18 @@ conda activate cracksql
 pip install -r requirements.txt
 ```
 
-安装 MySQL 客户端和 PostgreSQL 客户端
+接着，安装 MySQL 客户端和 PostgreSQL 客户端
 
 ```bash
 sudo apt update
 sudo apt install default-mysql-client postgresql-client
 ```
 
-## 2 在 BIRD Critic 数据集上测试
+## 2 在 BIRD Critic 数据集和自创数据集 High School 上测试
 
 ### 2.1 配置集测试环境
 
-下载数据库，并放在指定位置
+创建 `downloads` 目录，然后下载 BIRD Critic 数据库并解压到 `bird_critic` 目录：
 
 ```bash
 mkdir -p downloads
@@ -35,21 +37,27 @@ unzip downloads/BIRD-CRITIC-DB/mssql_table_dumps.zip -d bird_critic
 rm -rf bird_critic/__MACOSX
 ```
 
-首先确保 Docker daemon 正在运行，然后启动 Docker Compose，请耐心等待
+请确保 Docker daemon 正在运行。进入 `bird_critic` 目录并启动 Docker Compose。此过程可能需要一些时间，请耐心等待。
 
 ```bash
 cd bird_critic
 docker compose up --build
 ```
 
-验证安装和容器启动情况，尝试连接到容器，并检查是否成功导入了 BIRD Critic 的所有数据库
+验证安装和容器启动情况。尝试连接到容器，并检查是否成功导入了 BIRD Critic 的所有数据库：
 
 ```bash
 mysql -h 127.0.0.1 -P 13306 -u root -pmysql_root_password -e "SHOW DATABASES;"
 PGPASSWORD='postgres_password' psql -h 127.0.0.1 -p 15432 -U root -d postgres -c "SELECT version(); SELECT datname FROM pg_database;"
 ```
 
-如果之后要删除环境，运行
+导入 High School 数据集：
+
+```bash
+python high_school_dataset/insert.py
+```
+
+如果需要删除此测试环境，请运行：
 
 ```bash
 docker compose down -v
@@ -57,33 +65,49 @@ docker compose down -v
 
 ### 2.2 开始翻译
 
-运行
+运行以下命令进行 SQL 翻译：
 
 ```bash
 python test_cracksql_translate.py -p "BIRD Critic.*"
+python test_sqlglot_translate.py -p ".*"
 python test_jooq_translate.py -p ".*"
 ```
 
-运行完毕之后，在 `output/test_translated_*.json` 查看结果。
+在 High School 数据集上进行 SQL 翻译：
+
+```bash
+python test_cracksql_translate.py -p ".*" -i "high_school_dataset/test.json" -o "./output/test_translated_cracksql_high_school_dataset.json"
+python test_sqlglot_translate.py -p ".*" -i "high_school_dataset/test.json" -o "./output/test_translated_sqlglot_high_school_dataset.json"
+python test_jooq_translate.py -p ".*" -i "high_school_dataset/test.json" -o "./output/test_translated_jooq_high_school_dataset.json"
+```
+
+翻译结果将保存在 `output/test_translated_*.json` 文件中。
 
 ### 2.3 准确率测试
 
-运行
+运行以下命令测试翻译的准确率：
 
 ```bash
-python test_accuracy.py -i "./output/test_translated_craksql.json" -p ".*" > cracksql_result.txt
-python test_accuracy.py -i "./output/test_translated_jooq.json" -p "BIRD Critic.*" > jooq_result.txt
+python test_accuracy.py -i "./output/test_translated_craksql.json" -p ".*" > result_cracksql.txt
+python test_accuracy.py -i "./output/test_translated_sqlglot.json" -p "BIRD Critic.*" > result_sqlglot.txt
+python test_accuracy.py -i "./output/test_translated_jooq.json" -p "BIRD Critic.*" > result_jooq.txt
 ```
 
-运行完毕之后，在 `*_result.txt` 查看结果，包含在每个样本测试运行结果（查询语句的返回内容、执行语句之后的数据库内容）及其差异。
+在我们自己的数据集上的准确率：
+
+```bash
+python test_accuracy.py -i "./output/test_translated_cracksql_high_school_dataset.json" -p ".*" > high_school_dataset_result_cracksql.txt
+python test_accuracy.py -i "./output/test_translated_sqlglot_high_school_dataset.json" -p ".*" > high_school_dataset_result_sqlglot.txt
+python test_accuracy.py -i "./output/test_translated_jooq_high_school_dataset.json" -p ".*" > high_school_dataset_result_jooq.txt
+```
+
+测试结果（包括查询语句的返回内容、执行语句后的数据库内容及其差异）将保存在  `*_result.txt` 文件中。
 
 ### 2.4 ‼️已知问题
 
 实际上，BIRD Critic 数据集本身不保证不同数据库系统的数据库的一致性。
 
-比如在 Postgresql 版本的数据库中有一个表的名字是 `pitstops`，而在 MySQL 版本的数据库中对应表的名字是 `pitStops`。
-
-此外还有很多表中数据的差异。
+比如在 Postgresql 版本的数据库中有一个表的名字是 `pitstops`，而在 MySQL 版本的数据库中对应表的名字是 `pitStops`。此外，许多表中的数据也存在差异。
 
 所以在 BIRD Critic 数据集上测试翻译准确率是不合适的，最后的翻译一致准确率应该是 0%，翻译后的 SQL 语句执行成功率也接近 0%。
 
@@ -180,7 +204,7 @@ pip install sqlite3-to-mysql # 之前应该已经安装过了
 sudo apt install pgloader
 ```
 
-‼️TODO: 需要完善，这部分用这些工具无法成功转换
+‼️TODO: 这部分需要进一步完善。目前使用提供的工具可能无法成功转换 BIRD 和 BookSQL 的 sqlite3 数据库到 MySQL 和 PostgreSQL。
 
 ### 3.4 测试
 

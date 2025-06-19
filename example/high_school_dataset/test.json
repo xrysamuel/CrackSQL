@@ -1,0 +1,152 @@
+[
+    {
+        "postgresql": "SELECT * FROM students WHERE student_name LIKE '%王%';",
+        "mysql": "to be translated",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "SELECT course_name FROM courses WHERE teacher_id = 'T001';",
+        "mysql": "to be translated",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "SELECT c.course_name, t.teacher_name FROM courses c JOIN teachers t ON c.teacher_id = t.teacher_id;",
+        "mysql": "to be translated",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "SELECT s.student_name, s.class_name FROM students s WHERE s.class_name = 'Class 04';",
+        "mysql": "to be translated",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "UPDATE students SET class_name = 'Class 05' WHERE student_id = 'S0001';",
+        "mysql": "to be translated",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "UPDATE teachers SET teacher_name = '吴丽丽' WHERE teacher_id = 'T001';",
+        "mysql": "to be translated",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "UPDATE courses SET teacher_id = 'T006' WHERE course_id = 'C001';",
+        "mysql": "to be translated",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "DELETE FROM students WHERE student_id = 'S0010';",
+        "mysql": "to be translated",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "DELETE FROM teachers WHERE teacher_id = 'T010';",
+        "mysql": "to be translated",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "DELETE FROM courses WHERE course_id = 'C009';",
+        "mysql": "to be translated",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "SELECT student_id, student_name, class_name FROM (SELECT student_id, student_name, class_name, ROW_NUMBER() OVER (PARTITION BY class_name ORDER BY student_id) as rn FROM students) AS sub WHERE rn = 1;",
+        "id": "My Dataset",
+        "comment": "获取每个班级学号最小的（或并列最小的）学生"
+    },
+    {
+        "postgresql": "SELECT T.teacher_name, C.course_name FROM teachers T JOIN LATERAL (SELECT course_name, course_id FROM courses WHERE teacher_id = T.teacher_id ORDER BY course_id DESC LIMIT 1) AS C ON TRUE;",
+        "mysql": "to be translated",
+        "id": "My Dataset",
+        "comment": "查询每个老师教授的课程中，课程 ID 最大的那门课"
+    },
+    {
+        "postgresql": "SELECT DISTINCT ON (class_name) student_id, student_name, class_name FROM students ORDER BY class_name, student_id;",
+        "mysql": "to be translated",
+        "id": "My Dataset",
+        "comment": "获取每个班级中按学号排序的第一个学生"
+    },
+    {
+        "postgresql": "SELECT REGEXP_REPLACE(course_name, '\\d+$', '') AS  base_course_name, COUNT(*) AS course_count FROM courses GROUP BY base_course_name ORDER BY course_count DESC;",
+        "mysql": "to be translated",
+        "id": "My Dataset",
+        "comment": "统计不同课程的数量"
+    },
+    {
+        "postgresql": "ALTER TABLE students ADD PRIMARY KEY (student_id); INSERT INTO students (student_id, student_name, class_name) VALUES ('S0002', '张伟', 'Class 02') ON CONFLICT (student_id) DO UPDATE SET student_name = EXCLUDED.student_name, class_name = EXCLUDED.class_name;",
+        "mysql": "to be translated",
+        "id": "My Dataset",
+        "comment": "插入或更新学生信息"
+    },
+    {
+        "postgresql": "INSERT INTO courses (course_id, course_name, teacher_id) VALUES ('C999', '数据结构', 'T001') RETURNING course_id;",
+        "mysql": "to be translated",
+        "id": "My Dataset",
+        "comment": "插入课程并返回新插入的 course_id"
+    },
+    {
+        "postgresql": "SELECT t.teacher_name, JSONB_AGG(JSONB_BUILD_OBJECT('course_id', c.course_id, 'course_name', c.course_name)) AS courses_taught FROM teachers t JOIN courses c ON t.teacher_id = c.teacher_id GROUP BY t.teacher_name;",
+        "mysql": "to be translated",
+        "id": "My Dataset",
+        "comment": "将教师及其教授的课程聚合成 JSON 对象"
+    },
+    {
+        "postgresql": "SELECT t.teacher_name, COALESCE(STRING_AGG(c.course_name, ', '), '无课程') AS courses FROM teachers t LEFT JOIN courses c ON t.teacher_id = c.teacher_id GROUP BY t.teacher_name;",
+        "mysql": "to be translated",
+        "id": "My Dataset",
+        "comment": "找出所有教师及其教授的课程，如果没有课程则显示 '无课程'"
+    },
+    {
+        "postgresql": "SELECT student_name, class_name FROM students WHERE student_name ~ '王';",
+        "mysql": "to be translated",
+        "id": "My Dataset",
+        "comment": "查找名字包含 '王' 的学生"
+    },
+    {
+        "postgresql": "WITH ClassStudents AS (SELECT class_name, ARRAY_AGG(student_name ORDER BY student_name) AS student_names FROM students GROUP BY class_name) SELECT * FROM ClassStudents WHERE '王丹' = ANY(student_names);",
+        "mysql": "to be translated",
+        "id": "My Dataset",
+        "comment": "按班级聚合学生姓名"
+    },
+    {
+        "postgresql": "UPDATE courses SET course_name = course_name || ' (修订版)' WHERE course_id = 'C001';",
+        "mysql": "to be translated",
+        "id": "My Dataset",
+        "comment": "拼接字符串更新课程名称"
+    },
+
+
+
+
+
+
+
+
+
+
+    {
+        "mysql": "REPLACE INTO courses (course_id, course_name, teacher_id) VALUES ('C002', '数据结构', 'T001');",
+        "postgresql": "to be translated",
+        "id": "My Dataset",
+        "comment": "插入课程，如果 course_id 存在则替换"
+    },
+    {
+        "mysql": "SELECT t.teacher_name, GROUP_CONCAT(c.course_name SEPARATOR ' | ') AS courses_taught FROM teachers t LEFT JOIN courses c ON t.teacher_id = c.teacher_id GROUP BY t.teacher_name;",
+        "postgresql": "to be translated",
+        "id": "My Dataset",
+        "comment": "将每个教师教授的所有课程名称连接成一个字符串"
+    },
+    {
+        "mysql": "SELECT student_id, student_name, class_name FROM students LIMIT 10, 5;",
+        "postgresql": "to be translated",
+        "id": "My Dataset",
+        "comment": "进行分页查询，获取第三页的学生数据（每页 5 条）"
+    },
+    {
+        "mysql": "SELECT student_name, class_name FROM students WHERE FIND_IN_SET(class_name, 'Class 01,Class 04,Class 09');",
+        "postgresql": "to be translated",
+        "id": "My Dataset",
+        "comment": "查找班级名称在特定列表中的学生"
+    }
+]
+

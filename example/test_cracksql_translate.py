@@ -31,12 +31,13 @@ logger = logging.getLogger(__name__)
 
 
 DIALECT_MAPPING: Dict[str, Tuple[DatabaseSystem, str, str]] = {
-    Dialect.MYSQL: (MySQLDatabaseSystem, "mysql", "mysql_knowledge"),
-    Dialect.POSTGRESQL: (PGSQLDatabaseSystem, "postgresql", "postgresql_knowledge")
+    Dialect.MYSQL: (MySQLDatabaseSystem, "mysql_knowledge", "mysql"),
+    Dialect.POSTGRESQL: (PGSQLDatabaseSystem, "postgresql_knowledge", "postgresql")
     # Dialect.SQLITE: TODO
 }
 
 POSSIBLE_DB_NAMES = [
+    "high_school",
     "debit_card_specializing",
     "financial",
     "formula_1",

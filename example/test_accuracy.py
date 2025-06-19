@@ -32,6 +32,7 @@ DIALECT_MAPPING: Dict[str, Tuple[DatabaseSystem, str, str]] = {
 }
 
 POSSIBLE_DB_NAMES = [
+    "high_school",
     "debit_card_specializing",
     "financial",
     "formula_1",
@@ -71,6 +72,8 @@ def get_accuracy_result(pair: SQLTranslationPair) -> Tuple[ExecutionResult, Exec
     
     src_db_system.config["db_name"] = db_name
     tgt_db_system.config["db_name"] = db_name
+    logging.info(f"Source SQL: {pair.src_sql}")
+    logging.info(f"Target SQL: {pair.tgt_sql}")
     src_result = src_db_system.execute(pair.src_sql, src_db_system.config)
     tgt_result = tgt_db_system.execute(pair.tgt_sql, tgt_db_system.config)
     return src_result, tgt_result
