@@ -1,0 +1,127 @@
+[
+    {
+        "postgresql": "SELECT * FROM students WHERE student_name LIKE '%王%';",
+        "mysql": "select *\nfrom students\nwhere student_name like '%王%'",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "SELECT course_name FROM courses WHERE teacher_id = 'T001';",
+        "mysql": "select course_name\nfrom courses\nwhere teacher_id = 'T001'",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "SELECT c.course_name, t.teacher_name FROM courses c JOIN teachers t ON c.teacher_id = t.teacher_id;",
+        "mysql": "select c.course_name, t.teacher_name\nfrom courses as c\n  join teachers as t\n    on c.teacher_id = t.teacher_id",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "SELECT s.student_name, s.class_name FROM students s WHERE s.class_name = 'Class 04';",
+        "mysql": "select s.student_name, s.class_name\nfrom students as s\nwhere s.class_name = 'Class 04'",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "UPDATE students SET class_name = 'Class 05' WHERE student_id = 'S0001';",
+        "mysql": "update students\nset\n  class_name = 'Class 05'\nwhere student_id = 'S0001'",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "UPDATE teachers SET teacher_name = '吴丽丽' WHERE teacher_id = 'T001';",
+        "mysql": "update teachers\nset\n  teacher_name = '吴丽丽'\nwhere teacher_id = 'T001'",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "UPDATE courses SET teacher_id = 'T006' WHERE course_id = 'C001';",
+        "mysql": "update courses\nset\n  teacher_id = 'T006'\nwhere course_id = 'C001'",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "DELETE FROM students WHERE student_id = 'S0010';",
+        "mysql": "delete from students\nwhere student_id = 'S0010'",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "DELETE FROM teachers WHERE teacher_id = 'T010';",
+        "mysql": "delete from teachers\nwhere teacher_id = 'T010'",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "DELETE FROM courses WHERE course_id = 'C009';",
+        "mysql": "delete from courses\nwhere course_id = 'C009'",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "SELECT student_id, student_name, class_name FROM (SELECT student_id, student_name, class_name, ROW_NUMBER() OVER (PARTITION BY class_name ORDER BY student_id) as rn FROM students) AS sub WHERE rn = 1;",
+        "mysql": "select student_id, student_name, class_name\nfrom (\n  select\n    student_id,\n    student_name,\n    class_name,\n    row_number() over (\n      partition by class_name\n      order by student_id\n    ) as rn\n  from students\n) as sub\nwhere rn = 1",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "SELECT T.teacher_name, C.course_name FROM teachers T JOIN LATERAL (SELECT course_name, course_id FROM courses WHERE teacher_id = T.teacher_id ORDER BY course_id DESC LIMIT 1) AS C ON TRUE;",
+        "mysql": "select T.teacher_name, C.course_name\nfrom teachers as T\n  join lateral (\n    select course_name, course_id\n    from courses\n    where teacher_id = T.teacher_id\n    order by course_id desc\n    limit 1\n  ) as C\n    on true",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "SELECT DISTINCT ON (class_name) student_id, student_name, class_name FROM students ORDER BY class_name, student_id;",
+        "mysql": "select t.student_id, t.student_name, t.class_name\nfrom (\n  select distinct\n    student_id,\n    student_name,\n    class_name,\n    row_number() over (\n      partition by class_name\n      order by class_name, student_id\n    ) as `rn`\n  from students\n) as t\nwhere `rn` = 1\norder by class_name, student_id",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "SELECT REGEXP_REPLACE(course_name, '\\d+$', '') AS  base_course_name, COUNT(*) AS course_count FROM courses GROUP BY base_course_name ORDER BY course_count DESC;",
+        "mysql": "select\n  regexp_replace(course_name, '\\\\d+$', '', 1, 1) as base_course_name,\n  count(*) as course_count\nfrom courses\ngroup by base_course_name\norder by course_count desc",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "ALTER TABLE students ADD PRIMARY KEY (student_id); INSERT INTO students (student_id, student_name, class_name) VALUES ('S0002', '张伟', 'Class 02') ON CONFLICT (student_id) DO UPDATE SET student_name = EXCLUDED.student_name, class_name = EXCLUDED.class_name;",
+        "mysql": "alter table students add primary key (student_id);\ninsert into students (student_id, student_name, class_name)\nvalues (\n  'S0002', \n  '张伟', \n  'Class 02'\n)\nas `t`\non duplicate key update\n  student_name = `t`.student_name,\n  class_name = `t`.class_name;",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "INSERT INTO courses (course_id, course_name, teacher_id) VALUES ('C999', '数据结构', 'T001') RETURNING course_id;",
+        "mysql": "insert into courses (course_id, course_name, teacher_id)\nvalues (\n  'C999', \n  '数据结构', \n  'T001'\n)",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "SELECT t.teacher_name, JSONB_AGG(JSONB_BUILD_OBJECT('course_id', c.course_id, 'course_name', c.course_name)) AS courses_taught FROM teachers t JOIN courses c ON t.teacher_id = c.teacher_id GROUP BY t.teacher_name;",
+        "mysql": "set @t = @@group_concat_max_len;\nset @@group_concat_max_len = 4294967295;\nselect\n  t.teacher_name,\n  json_merge_preserve(\n    '[]',\n    concat(\n      '[',\n      group_concat(json_object(\n        'course_id', c.course_id,\n        'course_name', c.course_name\n      ) separator ','),\n      ']'\n    )\n  ) as courses_taught\nfrom teachers as t\n  join courses as c\n    on t.teacher_id = c.teacher_id\ngroup by t.teacher_name;\nset @@group_concat_max_len = @t;",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "SELECT t.teacher_name, COALESCE(STRING_AGG(c.course_name, ', '), '无课程') AS courses FROM teachers t LEFT JOIN courses c ON t.teacher_id = c.teacher_id GROUP BY t.teacher_name;",
+        "mysql": "set @t = @@group_concat_max_len;\nset @@group_concat_max_len = 4294967295;\nselect\n  t.teacher_name,\n  coalesce(\n    group_concat(c.course_name separator ', '),\n    '无课程'\n  ) as courses\nfrom teachers as t\n  left outer join courses as c\n    on t.teacher_id = c.teacher_id\ngroup by t.teacher_name;\nset @@group_concat_max_len = @t;",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "SELECT student_name, class_name FROM students WHERE student_name ~ '王';",
+        "mysql": "select student_name, class_name\nfrom students\nwhere student_name regexp '王'",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "WITH ClassStudents AS (SELECT class_name, ARRAY_AGG(student_name ORDER BY student_name) AS student_names FROM students GROUP BY class_name) SELECT * FROM ClassStudents WHERE '王丹' = ANY(student_names);",
+        "mysql": "with\n  ClassStudents as (\n    select\n      class_name,\n      array_agg(student_name order by student_name) as student_names\n    from students\n    group by class_name\n  )\nselect *\nfrom ClassStudents\nwhere '王丹' = student_names",
+        "id": "My Dataset"
+    },
+    {
+        "postgresql": "UPDATE courses SET course_name = course_name || ' (修订版)' WHERE course_id = 'C001';",
+        "mysql": "update courses\nset\n  course_name = concat(\n    cast(course_name as char),\n    ' (修订版)'\n  )\nwhere course_id = 'C001'",
+        "id": "My Dataset"
+    },
+    {
+        "mysql": "REPLACE INTO courses (course_id, course_name, teacher_id) VALUES ('C002', '数据结构', 'T001');",
+        "postgresql": "REPLACE not yet implemented. If you're interested in this feature, please comment on https://github.com/jOOQ/jOOQ/issues/16487: [1:9] REPLACE [*]INTO courses (course_id, course_name, teacher_id) VALUES ('C002', '数据结构', 'T001'...",
+        "id": "My Dataset"
+    },
+    {
+        "mysql": "SELECT t.teacher_name, GROUP_CONCAT(c.course_name SEPARATOR ' | ') AS courses_taught FROM teachers t LEFT JOIN courses c ON t.teacher_id = c.teacher_id GROUP BY t.teacher_name;",
+        "postgresql": "select\n  t.teacher_name,\n  string_agg(cast(c.course_name as varchar), ' | ') as courses_taught\nfrom teachers as t\n  left outer join courses as c\n    on t.teacher_id = c.teacher_id\ngroup by t.teacher_name",
+        "id": "My Dataset"
+    },
+    {
+        "mysql": "SELECT student_id, student_name, class_name FROM students LIMIT 10, 5;",
+        "postgresql": "select student_id, student_name, class_name\nfrom students\noffset 10 rows\nfetch next 5 rows only",
+        "id": "My Dataset"
+    },
+    {
+        "mysql": "SELECT student_name, class_name FROM students WHERE FIND_IN_SET(class_name, 'Class 01,Class 04,Class 09');",
+        "postgresql": "Boolean field expected: [1:106] ...D_IN_SET(class_name, 'Class 01,Class 04,Class 09')[*];",
+        "id": "My Dataset"
+    }
+]

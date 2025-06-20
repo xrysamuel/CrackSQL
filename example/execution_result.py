@@ -97,17 +97,19 @@ def _compare_dataframes(
         if not a.equals(b):
             count = 0
             parts.append(f"Differences in table '{table_name}':")
-            for row in a.index:
-                for col in a.columns:
-                    if count >= 10:
-                        parts.append("...")
-                        return parts
-                    val1 = a.loc[row, col]
-                    val2 = b.loc[row, col]
-                    if pd.isna(val1) or pd.isna(val2) or val1 == val2:
-                        continue
-                    parts.append(f"@ (row: {row}, col: {col}): {a_name}: {val1}, {b_name}: {val2}")
-                    count += 1
+            diff_mask = (a != b) & ~(a.isna() & b.isna())
+            for row_label in a.index:
+                for col_label in a.columns:
+                    if diff_mask.loc[row_label, col_label]: # Check if this cell is different
+                        if count >= 10:
+                            parts.append("...")
+                            return parts # Exit early after 10 differences
+                        
+                        val1 = a.loc[row_label, col_label]
+                        val2 = b.loc[row_label, col_label]
+
+                        parts.append(f"@ (row: {row_label}, col: {col_label}): {a_name}: {val1}, {b_name}: {val2}")
+                        count += 1
 
     if len(parts) == 0:
         parts.append(f"{table_name}: No differences between {a_name} and {b_name}")

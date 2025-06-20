@@ -87,21 +87,28 @@ if __name__ == "__main__":
     )
 
     translated_pairs = []
+    print(f"# Comparison Result of '{args.input_file}'")
     for pair in pairs:
-        def title(s):
-            s = str(s)
-            width = len(s) + 10
-            border_line = ("#" * (width + 4) + "\n") * 2
-            blank_line = ("##" + " " * width + "##\n") * 2
-            text_line = ("##" + " " * 5 + s + " " * 5 + "##\n")
-            return border_line + blank_line + text_line + blank_line + border_line
-        print(title(f"=== result of pair {pair.index} ==="))
+        print(f"\n## Comparison result of sample {pair.index}")
         src_result, tgt_result = get_accuracy_result(pair)
-        print(title("src result"))
+
+        print("\n### Execution result of source SQL statement")
+        print(f"\n```{pair.src_dialect.value}\n{pair.src_sql}\n```\n")
         print(src_result)
-        print(title("tgt result"))
+
+        print("\n### Execution result of Target SQL statement")
+        print(f"\n```{pair.tgt_dialect.value}\n{pair.tgt_sql}\n```\n")
         print(tgt_result)
-        print(title("equivalence"))
+
+        print("\n### Equivalence of the two execution results")
+        database_equivalence = src_result.database_equals(tgt_result)
+        result_equivalence = src_result.result_equals(tgt_result)
+        no_error = tgt_result.error_message is None
+        print("- Consistency of data in the database after execution (@1):", database_equivalence)
+        print("- Consistency of query results (@2):", result_equivalence)
+        print("- Execution without errors (@3):", no_error)
+        print("- All correct (@4):", database_equivalence and result_equivalence and no_error)
+        print()
         print(src_result.compare(tgt_result))
         
 

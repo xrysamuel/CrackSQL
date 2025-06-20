@@ -87,17 +87,22 @@ def cracksql_translate_pair(pair: SQLTranslationPair) -> SQLTranslationPair:
         return pair
     
     tgt_db_system.config["db_name"] = db_name
-    translated_sql, model_ans_list, used_pieces, lift_histories = translate(
-        model_name="qwen-plus",
-        src_sql=pair.src_sql,
-        src_dialect=src_dialect,
-        tgt_dialect=tgt_dialect,
-        target_db_config=tgt_db_system.config,
-        vector_config=vector_config,
-        out_dir="./output",
-        retrieval_on=False,
-        top_k=3,
-    )
+    try:
+        translated_sql, model_ans_list, used_pieces, lift_histories = translate(
+            model_name="qwen-plus",
+            src_sql=pair.src_sql,
+            src_dialect=src_dialect,
+            tgt_dialect=tgt_dialect,
+            target_db_config=tgt_db_system.config,
+            vector_config=vector_config,
+            out_dir="./output",
+            retrieval_on=False,
+            top_k=3,
+        )
+    except Exception as e:
+        logging.error(f"Translation failed: {e}")
+        pair.tgt_sql = f"Cannot translate due to {e}."
+        return pair
 
     logging.info("Translation completed!")
     pair.tgt_sql = translated_sql

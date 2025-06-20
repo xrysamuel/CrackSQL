@@ -1,7 +1,5 @@
 # CrackSQL 测试
 
-报告见 [Report](REPORT.md)
-
 ## 1 配置环境
 
 在开始之前，请确保您的系统是 Debian 或 Ubuntu，并且已经安装了 Docker。在开始之前，请确保您的系统是 Debian 或 Ubuntu，并且已经安装了 Docker。
@@ -88,17 +86,17 @@ python test_jooq_translate.py -p ".*" -i "high_school_dataset/test.json" -o "./o
 运行以下命令测试翻译的准确率：
 
 ```bash
-python test_accuracy.py -i "./output/test_translated_craksql.json" -p ".*" > result_cracksql.txt
-python test_accuracy.py -i "./output/test_translated_sqlglot.json" -p "BIRD Critic.*" > result_sqlglot.txt
-python test_accuracy.py -i "./output/test_translated_jooq.json" -p "BIRD Critic.*" > result_jooq.txt
+python test_accuracy.py -i "./output/test_translated_cracksql.json" -p ".*" > result_cracksql.md
+python test_accuracy.py -i "./output/test_translated_sqlglot.json" -p "BIRD Critic.*" > result_sqlglot.md
+python test_accuracy.py -i "./output/test_translated_jooq.json" -p "BIRD Critic.*" > result_jooq.md
 ```
 
 在我们自己的数据集上的准确率：
 
 ```bash
-python test_accuracy.py -i "./output/test_translated_cracksql_high_school_dataset.json" -p ".*" > high_school_dataset_result_cracksql.txt
-python test_accuracy.py -i "./output/test_translated_sqlglot_high_school_dataset.json" -p ".*" > high_school_dataset_result_sqlglot.txt
-python test_accuracy.py -i "./output/test_translated_jooq_high_school_dataset.json" -p ".*" > high_school_dataset_result_jooq.txt
+python test_accuracy.py -i "./output/test_translated_cracksql_high_school_dataset.json" -p ".*" > high_school_dataset_result_cracksql.md
+python test_accuracy.py -i "./output/test_translated_sqlglot_high_school_dataset.json" -p ".*" > high_school_dataset_result_sqlglot.md
+python test_accuracy.py -i "./output/test_translated_jooq_high_school_dataset.json" -p ".*" > high_school_dataset_result_jooq.md
 ```
 
 测试结果（包括查询语句的返回内容、执行语句后的数据库内容及其差异）将保存在  `*_result.txt` 文件中。

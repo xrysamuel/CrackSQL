@@ -51,6 +51,7 @@
     },
     {
         "postgresql": "SELECT student_id, student_name, class_name FROM (SELECT student_id, student_name, class_name, ROW_NUMBER() OVER (PARTITION BY class_name ORDER BY student_id) as rn FROM students) AS sub WHERE rn = 1;",
+        "mysql": "to be translated",
         "id": "My Dataset",
         "comment": "获取每个班级学号最小的（或并列最小的）学生"
     },

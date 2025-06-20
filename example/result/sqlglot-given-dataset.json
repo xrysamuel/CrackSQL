@@ -1,0 +1,502 @@
+[
+    {
+        "postgresql": "CREATE OR REPLACE FUNCTION get_user_ages() RETURNS setof numeric AS $BODY$ DECLARE curr_age text; BEGIN FOR curr_age IN SELECT Age FROM users LOOP BEGIN RETURN NEXT curr_age::numeric; EXCEPTION WHEN OTHERS THEN NULL; END; END LOOP; END $BODY$ LANGUAGE plpgsql; SELECT * FROM get_user_ages()",
+        "mysql": "CREATE OR REPLACE FUNCTION get_user_ages() RETURNS setof numeric AS $BODY$ DECLARE curr_age text; BEGIN FOR curr_age IN SELECT Age FROM users LOOP BEGIN RETURN NEXT curr_age::numeric; EXCEPTION WHEN OTHERS THEN NULL; END; END LOOP; END $BODY$ LANGUAGE plpgsql",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "CREATE TABLE client_information ( client_id smallserial NOT NULL, first_name character varying(50), last_name character varying(50), full_name character varying(101) GENERATED ALWAYS AS (CASE WHEN first_name IS NULL THEN last_name WHEN last_name IS NULL THEN first_name ELSE first_name || ' ' || last_name END) STORED, PRIMARY KEY (client_id) )",
+        "mysql": "CREATE TABLE client_information (client_id SMALLSERIAL NOT NULL, first_name VARCHAR(50), last_name VARCHAR(50), full_name VARCHAR(101) AS CASE WHEN first_name IS NULL THEN last_name WHEN last_name IS NULL THEN first_name ELSE CONCAT(first_name, ' ', last_name) END, PRIMARY KEY (CASE WHEN client_id IS NULL THEN 1 ELSE 0 END, client_id))",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "select count(distinct transaction_id) from master_txn_table where customers = \"Stephanie Edwards\" and transaction_type = 'invoice' and open_balance >0 and transaction_date BETWEEN date(current_date, '-3 months', 'start of year', '+3 months') AND date(current_date, '-3 months', 'start of year','+1 year', '+3 months', '-1 day')",
+        "mysql": "SELECT COUNT(DISTINCT transaction_id) FROM master_txn_table WHERE customers = `Stephanie Edwards` AND transaction_type = 'invoice' AND open_balance > 0 AND transaction_date BETWEEN DATE(CURRENT_DATE, '-3 months', 'start of year', '+3 months') AND DATE(CURRENT_DATE, '-3 months', 'start of year', '+1 year', '+3 months', '-1 day')",
+        "id": "BookSQL",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "\"select sum(credit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where customers = \"\"Katie Cox\"\" and transaction_date \"BETWEEN date(current_date, 'start of year') AND date(current_date, 'start of year', '+1 month', '-1 day') \" and account_type in ('Income','Other Income')\"",
+        "mysql": "`select sum(credit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where customers = \"Katie Cox\" and transaction_date ` BETWEEN DATE(CURRENT_DATE, 'start of year') AND DATE(CURRENT_DATE, 'start of year', '+1 month', '-1 day') AS ` and account_type in ('Income','Other Income')`",
+        "id": "BookSQL",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT CAST(SUM(CASE WHEN T2.`Sales Team` = 'Carlos Miller' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T1.OrderNumber) FROM `Sales Orders` AS T1 INNER JOIN `Sales Team` AS T2 ON T2.SalesTeamID = T1._SalesTeamID",
+        "postgresql": "SELECT CAST(SUM(CASE WHEN T2.\"Sales Team\" = 'Carlos Miller' THEN 1 ELSE 0 END) AS REAL) * 100 / NULLIF(COUNT(T1.OrderNumber), 0) FROM \"Sales Orders\" AS T1 INNER JOIN \"Sales Team\" AS T2 ON T2.SalesTeamID = T1._SalesTeamID",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "\"select sum(credit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where customers = \"\"Katie Cox\"\" and transaction_date \"BETWEEN date(current_date, 'start of year') AND date(current_date, 'start of year', '+1 month', '-1 day') \" and account_type in ('Income','Other Income')\"",
+        "mysql": "`select sum(credit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where customers = \"Katie Cox\" and transaction_date ` BETWEEN DATE(CURRENT_DATE, 'start of year') AND DATE(CURRENT_DATE, 'start of year', '+1 month', '-1 day') AS ` and account_type in ('Income','Other Income')`",
+        "id": "BookSQL",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "create or replace function setup_vector_store(table_name text) returns void language plpgsql as $f1$ begin execute format($dynsql$ create table %1$I (id bigint primary key generated always as identity, description text, metadata jsonb); drop function if exists match_strategies(int, jsonb); create function match_strategies (match_count int default null, filter jsonb default '{}'::jsonb) returns table (id bigint, description text, metadata jsonb, similarity float) language plpgsql as $f2$ begin return query select id, description, metadata, 1 as similarity from %1$I where metadata @> filter limit match_count; end; $f2$; $dynsql$, table_name); end; $f1$",
+        "mysql": "CREATE OR REPLACE FUNCTION setup_vector_store(table_name TEXT) RETURNS void LANGUAGE plpgsql AS $$ begin execute format($dynsql$ create table %1$I (id bigint primary key generated always as identity, description text, metadata jsonb); drop function if exists match_strategies(int, jsonb); create function match_strategies (match_count int default null, filter jsonb default '{}'::jsonb) returns table (id bigint, description text, metadata jsonb, similarity float) language plpgsql as $f2$ begin return query select id, description, metadata, 1 as similarity from %1$I where metadata @> filter limit match_count; end; $f2$; $dynsql$, table_name); end; $$",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT DISTINCT DATETIME() - T2.birthday age FROM Player_Attributes AS t1 INNER JOIN Player AS t2 ON t1.player_api_id = t2.player_api_id WHERE STRFTIME('%Y',t1.`date`) >= '2013' AND STRFTIME('%Y',t1.`date`) <= '2015' AND t1.sprint_speed >= 97",
+        "mysql": "SELECT DISTINCT DATETIME() - T2.birthday AS age FROM Player_Attributes AS t1 INNER JOIN Player AS t2 ON t1.player_api_id = t2.player_api_id WHERE DATE_FORMAT(CAST(t1.`date` AS DATETIME), '%Y') >= '2013' AND DATE_FORMAT(CAST(t1.`date` AS DATETIME), '%Y') <= '2015' AND t1.sprint_speed >= 97",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "create or replace function setup_vector_store(table_name text) returns void language plpgsql as $f1$ begin execute format($dynsql$ create table %1$I (id bigint primary key generated always as identity, description text, metadata jsonb); drop function if exists match_strategies(int, jsonb); create function match_strategies (match_count int default null, filter jsonb default '{}'::jsonb) returns table (id bigint, description text, metadata jsonb, similarity float) language plpgsql as $f2$ begin return query select id, description, metadata, 1 as similarity from %1$I where metadata @> filter limit match_count; end; $f2$; $dynsql$, table_name); end; $f1$",
+        "mysql": "CREATE OR REPLACE FUNCTION setup_vector_store(table_name TEXT) RETURNS void LANGUAGE plpgsql AS $$ begin execute format($dynsql$ create table %1$I (id bigint primary key generated always as identity, description text, metadata jsonb); drop function if exists match_strategies(int, jsonb); create function match_strategies (match_count int default null, filter jsonb default '{}'::jsonb) returns table (id bigint, description text, metadata jsonb, similarity float) language plpgsql as $f2$ begin return query select id, description, metadata, 1 as similarity from %1$I where metadata @> filter limit match_count; end; $f2$; $dynsql$, table_name); end; $$",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "select max(credit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where account_type in ('Income','Other Income') and customers = \"Beth Walsh\" and transaction_date BETWEEN date(current_date, 'start of year', '+7 month') AND date(current_date, 'start of year', '+8 month', '-1 day')",
+        "mysql": "SELECT MAX(credit) FROM master_txn_table AS T1 JOIN chart_of_accounts AS T2 ON T1.account = T2.account_name WHERE account_type IN ('Income', 'Other Income') AND customers = `Beth Walsh` AND transaction_date BETWEEN DATE(CURRENT_DATE, 'start of year', '+7 month') AND DATE(CURRENT_DATE, 'start of year', '+8 month', '-1 day')",
+        "id": "BookSQL",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT `Discount Applied` FROM `Sales Orders` WHERE REPLACE(`Unit Price`, ',', '') = ( SELECT REPLACE(`Unit Price`, ',', '') FROM `Sales Orders` ORDER BY REPLACE(`Unit Price`, ',', '') DESC LIMIT 1 ) ORDER BY REPLACE(`Unit Price`, ',', '') DESC LIMIT 1",
+        "postgresql": "SELECT \"Discount Applied\" FROM \"Sales Orders\" WHERE REPLACE(\"Unit Price\", ',', '') = (SELECT REPLACE(\"Unit Price\", ',', '') FROM \"Sales Orders\" ORDER BY REPLACE(\"Unit Price\", ',', '') DESC NULLS LAST LIMIT 1) ORDER BY REPLACE(\"Unit Price\", ',', '') DESC NULLS LAST LIMIT 1",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT COUNT(T2.rental_id) , CAST(SUM(IIF(STRFTIME('%m',T2.rental_date) = '7', 1, 0)) AS REAL) * 100 / COUNT(T2.rental_id) FROM customer AS T1 INNER JOIN rental AS T2 ON T1.customer_id = T2.customer_id WHERE T1.first_name = 'Maria' AND T1.last_name = 'Miller' AND STRFTIME('%Y',T2.rental_date) = '2005'",
+        "mysql": "SELECT COUNT(T2.rental_id), CAST(SUM(CASE WHEN DATE_FORMAT(CAST(T2.rental_date AS DATETIME), '%m') = '7' THEN 1 ELSE 0 END) AS FLOAT) * 100 / COUNT(T2.rental_id) FROM customer AS T1 INNER JOIN rental AS T2 ON T1.customer_id = T2.customer_id WHERE T1.first_name = 'Maria' AND T1.last_name = 'Miller' AND DATE_FORMAT(CAST(T2.rental_date AS DATETIME), '%Y') = '2005'",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "SELECT * FROM account_info WHERE condition::jsonb @> '[ { \"conditions\": { \"rootcompanyid\": { \"$in\": [5] } } } ]'",
+        "mysql": "SELECT * FROM account_info WHERE CAST(`condition` AS JSONB) @> '[ { \"conditions\": { \"rootcompanyid\": { \"$in\": [5] } } } ]'",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "select distinct transaction_id from master_txn_table where transaction_type = 'bill' and customers = \"Dakota Acevedo\" and product_service = \"Medical services\" and transaction_date BETWEEN date(current_date, '-3 months', 'start of year','-1 years', '+3 months') AND date(current_date, '-3 months', 'start of year','-1 years', '+3 months', '+1 years', '-1 days')",
+        "mysql": "SELECT DISTINCT transaction_id FROM master_txn_table WHERE transaction_type = 'bill' AND customers = `Dakota Acevedo` AND product_service = `Medical services` AND transaction_date BETWEEN DATE(CURRENT_DATE, '-3 months', 'start of year', '-1 years', '+3 months') AND DATE(CURRENT_DATE, '-3 months', 'start of year', '-1 years', '+3 months', '+1 years', '-1 days')",
+        "id": "BookSQL",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "CREATE TABLE client_information ( client_id smallserial NOT NULL, first_name character varying(50), last_name character varying(50), full_name character varying(101) GENERATED ALWAYS AS (CASE WHEN first_name IS NULL THEN last_name WHEN last_name IS NULL THEN first_name ELSE first_name || ' ' || last_name END) STORED, PRIMARY KEY (client_id) )",
+        "mysql": "CREATE TABLE client_information (client_id SMALLSERIAL NOT NULL, first_name VARCHAR(50), last_name VARCHAR(50), full_name VARCHAR(101) AS CASE WHEN first_name IS NULL THEN last_name WHEN last_name IS NULL THEN first_name ELSE CONCAT(first_name, ' ', last_name) END, PRIMARY KEY (CASE WHEN client_id IS NULL THEN 1 ELSE 0 END, client_id))",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "select sum(credit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where account_type in ('Income','Other Income') and transaction_date BETWEEN date(current_date, 'start of year', '+7 month') AND date(current_date, 'start of year', '+8 month', '-1 day') and T1.customers = \"Michael Reese\"",
+        "mysql": "SELECT SUM(credit) FROM master_txn_table AS T1 JOIN chart_of_accounts AS T2 ON T1.account = T2.account_name WHERE account_type IN ('Income', 'Other Income') AND transaction_date BETWEEN DATE(CURRENT_DATE, 'start of year', '+7 month') AND DATE(CURRENT_DATE, 'start of year', '+8 month', '-1 day') AND T1.customers = `Michael Reese`",
+        "id": "BookSQL",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT SUM(IIF(ShipDate LIKE '6/%/18' AND `Sales Channel` = 'Online', 1, 0)) FROM `Sales Orders`",
+        "postgresql": "SELECT SUM(CASE WHEN ShipDate LIKE '6/%/18' AND \"Sales Channel\" = 'Online' THEN 1 ELSE 0 END) FROM \"Sales Orders\"",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "select distinct transaction_id from master_txn_table where transaction_type = 'bill' and customers = \"Dakota Acevedo\" and product_service = \"Medical services\" and transaction_date BETWEEN date(current_date, '-3 months', 'start of year','-1 years', '+3 months') AND date(current_date, '-3 months', 'start of year','-1 years', '+3 months', '+1 years', '-1 days')",
+        "mysql": "SELECT DISTINCT transaction_id FROM master_txn_table WHERE transaction_type = 'bill' AND customers = `Dakota Acevedo` AND product_service = `Medical services` AND transaction_date BETWEEN DATE(CURRENT_DATE, '-3 months', 'start of year', '-1 years', '+3 months') AND DATE(CURRENT_DATE, '-3 months', 'start of year', '-1 years', '+3 months', '+1 years', '-1 days')",
+        "id": "BookSQL",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT SUM(CASE WHEN T3.depart < 0 THEN units ELSE 0 END) AS sum FROM sales_in_weather AS T1 INNER JOIN relation AS T2 ON T1.store_nbr = T2.store_nbr INNER JOIN weather AS T3 ON T2.station_nbr = T3.station_nbr WHERE T2.store_nbr = 3 AND SUBSTR(T1.`date`, 1, 4) = '2012' AND T1.item_nbr = 5",
+        "postgresql": "SELECT SUM(CASE WHEN T3.depart < 0 THEN units ELSE 0 END) AS sum FROM sales_in_weather AS T1 INNER JOIN relation AS T2 ON T1.store_nbr = T2.store_nbr INNER JOIN weather AS T3 ON T2.station_nbr = T3.station_nbr WHERE T2.store_nbr = 3 AND SUBSTRING(T1.\"date\" FROM 1 FOR 4) = '2012' AND T1.item_nbr = 5",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT strftime('%Y', `Date received`), COUNT(`Date received`) FROM events WHERE product = 'Credit card' AND issue = 'Overlimit fee' GROUP BY strftime('%Y', `Date received`) HAVING COUNT(`Date received`)",
+        "postgresql": "SELECT TO_CHAR(CAST(\"Date received\" AS TIMESTAMP), 'YYYY'), COUNT(\"Date received\") FROM events WHERE product = 'Credit card' AND issue = 'Overlimit fee' GROUP BY TO_CHAR(CAST(\"Date received\" AS TIMESTAMP), 'YYYY') HAVING COUNT(\"Date received\")",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT 100 * (CAST(REPLACE(SUBSTR(T2.maxsalary, 4), ',', '') AS REAL) - CAST(REPLACE(SUBSTR(T1.salary, 4), ',', '') AS REAL)) / CAST(REPLACE(SUBSTR(T1.salary, 4), ',', '') AS REAL) AS per FROM employee AS T1 INNER JOIN position AS T2 ON T1.positionID = T2.positionID WHERE T1.firstname = 'Jose' AND T1.lastname = 'Rodriguez'",
+        "postgresql": "SELECT 100 * (CAST(REPLACE(SUBSTRING(T2.maxsalary FROM 4), ',', '') AS REAL) - CAST(REPLACE(SUBSTRING(T1.salary FROM 4), ',', '') AS REAL)) / NULLIF(CAST(REPLACE(SUBSTRING(T1.salary FROM 4), ',', '') AS REAL), 0) AS per FROM employee AS T1 INNER JOIN position AS T2 ON T1.positionID = T2.positionID WHERE T1.firstname = 'Jose' AND T1.lastname = 'Rodriguez'",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "select product_service, sum(debit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where transaction_date BETWEEN date(current_date, '-3 months', 'start of year', '+3 months') AND date(current_date, '-3 months', 'start of year','+1 year', '+3 months', '-1 day') and account_type in ('Expense','Other Expense') group by product_service",
+        "mysql": "SELECT product_service, SUM(debit) FROM master_txn_table AS T1 JOIN chart_of_accounts AS T2 ON T1.account = T2.account_name WHERE transaction_date BETWEEN DATE(CURRENT_DATE, '-3 months', 'start of year', '+3 months') AND DATE(CURRENT_DATE, '-3 months', 'start of year', '+1 year', '+3 months', '-1 day') AND account_type IN ('Expense', 'Other Expense') GROUP BY product_service",
+        "id": "BookSQL",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "CREATE OR REPLACE FUNCTION GapFillInternal(s anyelement, v anyelement) RETURNS anyelement LANGUAGE plpgsql AS $$ BEGIN IF s IS NULL AND v IS NULL THEN RETURN NULL; ELSIF v IS NULL THEN RETURN s; ELSE RETURN v; END IF; END; $$",
+        "mysql": "CREATE OR REPLACE FUNCTION GapFillInternal(s anyelement, v anyelement) RETURNS anyelement LANGUAGE plpgsql AS $$ BEGIN IF s IS NULL AND v IS NULL THEN RETURN NULL; ELSIF v IS NULL THEN RETURN s; ELSE RETURN v; END IF; END; $$",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "SELECT * FROM orders WHERE customer_id = 1 OR product_id = 'P202' ORDER BY RANK() OVER(ORDER BY CASE WHEN customer_id = 1 THEN 1 ELSE 2 END) FETCH FIRST ROW WITH TIES",
+        "mysql": "SELECT * FROM orders WHERE customer_id = 1 OR product_id = 'P202' ORDER BY CASE WHEN RANK() OVER (ORDER BY CASE WHEN CASE WHEN customer_id = 1 THEN 1 ELSE 2 END IS NULL THEN 1 ELSE 0 END, CASE WHEN customer_id = 1 THEN 1 ELSE 2 END) IS NULL THEN 1 ELSE 0 END, RANK() OVER (ORDER BY CASE WHEN CASE WHEN customer_id = 1 THEN 1 ELSE 2 END IS NULL THEN 1 ELSE 0 END, CASE WHEN customer_id = 1 THEN 1 ELSE 2 END) LIMIT",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT MAX(CAST(T1.`Free Meal Count (Ages 5-17)` AS REAL) / T1.`Enrollment (Ages 5-17)`) FROM frpm AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds WHERE CAST(T2.NumGE1500 AS REAL) / T2.NumTstTakr > 0.3",
+        "mysql": "SELECT MAX(CAST(T1.`Free Meal Count (Ages 5-17)` AS FLOAT) / T1.`Enrollment (Ages 5-17)`) FROM frpm AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds WHERE CAST(T2.NumGE1500 AS FLOAT) / T2.NumTstTakr > 0.3",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT CAST(COUNT(DISTINCT T2.inspection_id) AS REAL) / 5, T1.first_name, T1.last_name FROM employee AS T1 INNER JOIN inspection AS T2 ON T1.employee_id = T2.employee_id WHERE T1.title = 'Sanitarian' ORDER BY T1.salary DESC LIMIT 5",
+        "mysql": "SELECT CAST(COUNT(DISTINCT T2.inspection_id) AS FLOAT) / 5, T1.first_name, T1.last_name FROM employee AS T1 INNER JOIN inspection AS T2 ON T1.employee_id = T2.employee_id WHERE T1.title = 'Sanitarian' ORDER BY T1.salary DESC LIMIT 5",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "SELECT (select r.relname from pg_class r where r.oid = c.confrelid) as base_table, a.attname as base_col, (select r.relname from pg_class r where r.oid = c.conrelid) as referencing_table, UNNEST((select array_agg(attname) from pg_attribute where attrelid = c.conrelid and array[attnum] <@ c.conkey)) as referencing_col, pg_get_constraintdef(c.oid) contraint_sql FROM pg_constraint c join pg_attribute a on c.confrelid=a.attrelid and a.attnum = ANY(confkey) WHERE c.confrelid = (select oid from pg_class where relname = 'users') AND c.confrelid!=c.conrelid",
+        "mysql": "SELECT (SELECT r.relname FROM pg_class AS r WHERE r.oid = c.confrelid) AS base_table, a.attname AS base_col, (SELECT r.relname FROM pg_class AS r WHERE r.oid = c.conrelid) AS referencing_table, EXPLODE((SELECT GROUP_CONCAT(attname) FROM pg_attribute WHERE attrelid = c.conrelid AND c.conkey @> ARRAY(attnum))) AS referencing_col, PG_GET_CONSTRAINTDEF(c.oid) AS contraint_sql FROM pg_constraint AS c JOIN pg_attribute AS a ON c.confrelid = a.attrelid AND a.attnum = ANY(confkey) WHERE c.confrelid = (SELECT oid FROM pg_class WHERE relname = 'users') AND c.confrelid <> c.conrelid",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "\"select sum(credit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where customers = \"\"Katie Cox\"\" and transaction_date \"BETWEEN date(current_date, 'start of year') AND date(current_date, 'start of year', '+1 month', '-1 day') \" and account_type in ('Income','Other Income')\"",
+        "mysql": "`select sum(credit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where customers = \"Katie Cox\" and transaction_date ` BETWEEN DATE(CURRENT_DATE, 'start of year') AND DATE(CURRENT_DATE, 'start of year', '+1 month', '-1 day') AS ` and account_type in ('Income','Other Income')`",
+        "id": "BookSQL",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "DO $do$ DECLARE var RECORD; BEGIN var := ROW( ARRAY[NULL]::transactions_1k[], ARRAY[NULL]::customers[] ); SELECT ARRAY(SELECT t FROM transactions_1k t LIMIT 1) INTO var.f1; SELECT ARRAY(SELECT c FROM customers c LIMIT 1) INTO var.f2; RAISE NOTICE 'Transaction: %', var.f1[1]; RAISE NOTICE 'Customer: %', var.f2[1]; END $do$",
+        "mysql": "DO $do$ DECLARE var RECORD; BEGIN var := ROW( ARRAY[NULL]::transactions_1k[], ARRAY[NULL]::customers[] ); SELECT ARRAY(SELECT t FROM transactions_1k t LIMIT 1) INTO var.f1; SELECT ARRAY(SELECT c FROM customers c LIMIT 1) INTO var.f2; RAISE NOTICE 'Transaction: %', var.f1[1]; RAISE NOTICE 'Customer: %', var.f2[1]; END $do$",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "DO $do$ DECLARE var RECORD; BEGIN var := ROW( ARRAY[NULL]::transactions_1k[], ARRAY[NULL]::customers[] ); SELECT ARRAY(SELECT t FROM transactions_1k t LIMIT 1) INTO var.f1; SELECT ARRAY(SELECT c FROM customers c LIMIT 1) INTO var.f2; RAISE NOTICE 'Transaction: %', var.f1[1]; RAISE NOTICE 'Customer: %', var.f2[1]; END $do$",
+        "mysql": "DO $do$ DECLARE var RECORD; BEGIN var := ROW( ARRAY[NULL]::transactions_1k[], ARRAY[NULL]::customers[] ); SELECT ARRAY(SELECT t FROM transactions_1k t LIMIT 1) INTO var.f1; SELECT ARRAY(SELECT c FROM customers c LIMIT 1) INTO var.f2; RAISE NOTICE 'Transaction: %', var.f1[1]; RAISE NOTICE 'Customer: %', var.f2[1]; END $do$",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "SELECT rs.raceId as race_id, (SELECT string_agg(constructorId::TEXT, ',' ORDER BY res.resultId) FROM results res WHERE res.raceId = rs.raceId) as constructor_ids, (SELECT string_agg(p.stop::TEXT, ', ' ORDER BY p.raceId) FROM pitstops p WHERE rs.raceId = p.raceId) AS stops FROM races rs",
+        "mysql": "SELECT rs.raceId AS race_id, (SELECT GROUP_CONCAT(CAST(constructorId AS CHAR) ORDER BY CASE WHEN res.resultId IS NULL THEN 1 ELSE 0 END, res.resultId SEPARATOR ',') FROM results AS res WHERE res.raceId = rs.raceId) AS constructor_ids, (SELECT GROUP_CONCAT(CAST(p.stop AS CHAR) ORDER BY CASE WHEN p.raceId IS NULL THEN 1 ELSE 0 END, p.raceId SEPARATOR ', ') FROM pitstops AS p WHERE rs.raceId = p.raceId) AS stops FROM races AS rs",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "WITH labeled_ends AS (SELECT lag(sa.ts) OVER (PARTITION BY sa.superhero_id, sa.activity_code ORDER BY sa.ts) = sa.ts - interval '5' minute IS NOT TRUE AS begins_period, sa.ts, lead(sa.ts) OVER (PARTITION BY sa.superhero_id, sa.activity_code ORDER BY sa.ts) = sa.ts + interval '5' minute IS NOT TRUE AS ends_period, sa.superhero_id, sa.activity_code FROM superhero_activities sa), periods AS (SELECT labeled_ends.ts, CASE WHEN labeled_ends.ends_period THEN labeled_ends.ts ELSE lead(labeled_ends.ts) OVER (PARTITION BY labeled_ends.superhero_id, labeled_ends.activity_code ORDER BY labeled_ends.ts) END AS period_end, labeled_ends.superhero_id, labeled_ends.activity_code, labeled_ends.begins_period FROM labeled_ends WHERE labeled_ends.begins_period OR labeled_ends.ends_period) SELECT tstzrange(periods.ts, periods.period_end, '[]') AS valid_interval, periods.superhero_id, periods.activity_code FROM periods WHERE periods.begins_period ORDER BY periods.superhero_id, periods.activity_code, periods.ts",
+        "mysql": "WITH labeled_ends AS (SELECT LAG(sa.ts) OVER (PARTITION BY sa.superhero_id, sa.activity_code ORDER BY CASE WHEN sa.ts IS NULL THEN 1 ELSE 0 END, sa.ts) = NOT sa.ts - INTERVAL '5' MINUTE IS TRUE AS begins_period, sa.ts, LEAD(sa.ts) OVER (PARTITION BY sa.superhero_id, sa.activity_code ORDER BY CASE WHEN sa.ts IS NULL THEN 1 ELSE 0 END, sa.ts) = NOT sa.ts + INTERVAL '5' MINUTE IS TRUE AS ends_period, sa.superhero_id, sa.activity_code FROM superhero_activities AS sa), periods AS (SELECT labeled_ends.ts, CASE WHEN labeled_ends.ends_period THEN labeled_ends.ts ELSE LEAD(labeled_ends.ts) OVER (PARTITION BY labeled_ends.superhero_id, labeled_ends.activity_code ORDER BY CASE WHEN labeled_ends.ts IS NULL THEN 1 ELSE 0 END, labeled_ends.ts) END AS period_end, labeled_ends.superhero_id, labeled_ends.activity_code, labeled_ends.begins_period FROM labeled_ends WHERE labeled_ends.begins_period OR labeled_ends.ends_period) SELECT TSTZRANGE(periods.ts, periods.period_end, '[]') AS valid_interval, periods.superhero_id, periods.activity_code FROM periods WHERE periods.begins_period ORDER BY CASE WHEN periods.superhero_id IS NULL THEN 1 ELSE 0 END, periods.superhero_id, CASE WHEN periods.activity_code IS NULL THEN 1 ELSE 0 END, periods.activity_code, CASE WHEN periods.ts IS NULL THEN 1 ELSE 0 END, periods.ts",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT CAST(COUNT(DISTINCT T2.inspection_id) AS REAL) / 5, T1.first_name, T1.last_name FROM employee AS T1 INNER JOIN inspection AS T2 ON T1.employee_id = T2.employee_id WHERE T1.title = 'Sanitarian' ORDER BY T1.salary DESC LIMIT 5",
+        "mysql": "SELECT CAST(COUNT(DISTINCT T2.inspection_id) AS FLOAT) / 5, T1.first_name, T1.last_name FROM employee AS T1 INNER JOIN inspection AS T2 ON T1.employee_id = T2.employee_id WHERE T1.title = 'Sanitarian' ORDER BY T1.salary DESC LIMIT 5",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "CREATE OR REPLACE FUNCTION get_user_ages() RETURNS setof numeric AS $BODY$ DECLARE curr_age text; BEGIN FOR curr_age IN SELECT Age FROM users LOOP BEGIN RETURN NEXT curr_age::numeric; EXCEPTION WHEN OTHERS THEN NULL; END; END LOOP; END $BODY$ LANGUAGE plpgsql; SELECT * FROM get_user_ages()",
+        "mysql": "CREATE OR REPLACE FUNCTION get_user_ages() RETURNS setof numeric AS $BODY$ DECLARE curr_age text; BEGIN FOR curr_age IN SELECT Age FROM users LOOP BEGIN RETURN NEXT curr_age::numeric; EXCEPTION WHEN OTHERS THEN NULL; END; END LOOP; END $BODY$ LANGUAGE plpgsql",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "CREATE OR REPLACE FUNCTION trigger_function() RETURNS TRIGGER AS $BODY$ BEGIN INSERT INTO public.destination_table ( created_at, match_id, player_id, event_type, url, user_id ) VALUES ( NEW.created_at, NEW.match_id, NEW.player_id, NEW.event_type, split_part(NEW.url::text, '?', 1), ((NEW.data -> 'local_storage') -> 'data') ->> 'user_id' ); RETURN NEW; END; $BODY$ LANGUAGE plpgsql",
+        "mysql": "CREATE OR REPLACE FUNCTION trigger_function() RETURNS TRIGGER LANGUAGE plpgsql AS $$ BEGIN INSERT INTO public.destination_table ( created_at, match_id, player_id, event_type, url, user_id ) VALUES ( NEW.created_at, NEW.match_id, NEW.player_id, NEW.event_type, split_part(NEW.url::text, '?', 1), ((NEW.data -> 'local_storage') -> 'data') ->> 'user_id' ); RETURN NEW; END; $$",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT SUM(CASE WHEN T2.category_name LIKE 'Active Life' THEN 1 ELSE 0 END) AS \"num\" , CAST(SUM(CASE WHEN T3.city LIKE 'Phoenix' THEN 1 ELSE 0 END) AS REAL) * 100 / ( SELECT COUNT(T3.review_count) FROM Business_Categories AS T1 INNER JOIN Categories AS T2 ON T1.category_id = T2.category_id INNER JOIN Business AS T3 ON T1.business_id = T3.business_id WHERE T3.review_count LIKE 'Low' ) FROM Business_Categories AS T1 INNER JOIN Categories AS T2 ON T1.category_id = T2.category_id INNER JOIN Business AS T3 ON T1.business_id = T3.business_id",
+        "mysql": "SELECT SUM(CASE WHEN T2.category_name LIKE 'Active Life' THEN 1 ELSE 0 END) AS `num`, CAST(SUM(CASE WHEN T3.city LIKE 'Phoenix' THEN 1 ELSE 0 END) AS FLOAT) * 100 / (SELECT COUNT(T3.review_count) FROM Business_Categories AS T1 INNER JOIN Categories AS T2 ON T1.category_id = T2.category_id INNER JOIN Business AS T3 ON T1.business_id = T3.business_id WHERE T3.review_count LIKE 'Low') FROM Business_Categories AS T1 INNER JOIN Categories AS T2 ON T1.category_id = T2.category_id INNER JOIN Business AS T3 ON T1.business_id = T3.business_id",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "SELECT json_object_agg(label, groupedMolecules) AS molecules_by_label FROM ( SELECT label, json_agg( json_build_object( 'molecule_id', molecule.molecule_id, 'atoms', ( SELECT json_agg( json_build_object( 'atom_id', atom.atom_id, 'element', atom.element ) ) FROM atom WHERE atom.molecule_id = molecule.molecule_id ), 'bonds', ( SELECT json_agg( json_build_object( 'bond_id', bond.bond_id, 'bond_type', bond.bond_type ) ) FROM bond WHERE bond.molecule_id = molecule.molecule_id ) ) ) AS groupedMolecules FROM molecule GROUP BY label ) AS sub",
+        "mysql": "SELECT JSON_OBJECTAGG(label, groupedMolecules) AS molecules_by_label FROM (SELECT label, JSON_AGG(JSON_BUILD_OBJECT('molecule_id', molecule.molecule_id, 'atoms', (SELECT JSON_AGG(JSON_BUILD_OBJECT('atom_id', atom.atom_id, 'element', atom.element)) FROM atom WHERE atom.molecule_id = molecule.molecule_id), 'bonds', (SELECT JSON_AGG(JSON_BUILD_OBJECT('bond_id', bond.bond_id, 'bond_type', bond.bond_type)) FROM bond WHERE bond.molecule_id = molecule.molecule_id))) AS groupedMolecules FROM molecule GROUP BY label) AS sub",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT ( SELECT SUM(units) FROM sales_in_weather AS T1 INNER JOIN relation AS T2 ON T1.store_nbr = T2.store_nbr INNER JOIN weather AS T3 ON T2.station_nbr = T3.station_nbr WHERE T1.item_nbr = 16 AND T1.`date` LIKE '%2012%' AND T1.store_nbr = 5 GROUP BY tmax ORDER BY T3.tmax DESC LIMIT 1 ) - ( SELECT SUM(units) FROM sales_in_weather AS T1 INNER JOIN relation AS T2 ON T1.store_nbr = T2.store_nbr INNER JOIN weather AS T3 ON T2.station_nbr = T3.station_nbr WHERE T1.item_nbr = 16 AND T1.`date` LIKE '%2012%' AND T1.store_nbr = 6 GROUP BY tmax ORDER BY T3.tmax DESC LIMIT 1 )",
+        "postgresql": "SELECT (SELECT SUM(units) FROM sales_in_weather AS T1 INNER JOIN relation AS T2 ON T1.store_nbr = T2.store_nbr INNER JOIN weather AS T3 ON T2.station_nbr = T3.station_nbr WHERE T1.item_nbr = 16 AND T1.\"date\" LIKE '%2012%' AND T1.store_nbr = 5 GROUP BY tmax ORDER BY T3.tmax DESC NULLS LAST LIMIT 1) - (SELECT SUM(units) FROM sales_in_weather AS T1 INNER JOIN relation AS T2 ON T1.store_nbr = T2.store_nbr INNER JOIN weather AS T3 ON T2.station_nbr = T3.station_nbr WHERE T1.item_nbr = 16 AND T1.\"date\" LIKE '%2012%' AND T1.store_nbr = 6 GROUP BY tmax ORDER BY T3.tmax DESC NULLS LAST LIMIT 1)",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT DISTINCT COUNT ( DISTINCT t4.citingpaperid ) , t3.venueid FROM paperkeyphrase AS t2 JOIN keyphrase AS t1 ON t2.keyphraseid = t1.keyphraseid JOIN paper AS t3 ON t3.paperid = t2.paperid JOIN cite AS t4 ON t3.paperid = t4.citedpaperid WHERE t1.keyphrasename = \"NLP\" GROUP BY t3.venueid ORDER BY COUNT ( DISTINCT t4.citingpaperid ) DESC",
+        "postgresql": "SELECT DISTINCT COUNT(DISTINCT t4.citingpaperid), t3.venueid FROM paperkeyphrase AS t2 JOIN keyphrase AS t1 ON t2.keyphraseid = t1.keyphraseid JOIN paper AS t3 ON t3.paperid = t2.paperid JOIN cite AS t4 ON t3.paperid = t4.citedpaperid WHERE t1.keyphrasename = \"NLP\" GROUP BY t3.venueid ORDER BY COUNT(DISTINCT t4.citingpaperid) DESC NULLS LAST",
+        "id": "CSpider",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "EXPLAIN VERBOSE SELECT generate_series_monthly('2024-01-01', '2024-05-01')",
+        "mysql": "EXPLAIN VERBOSE SELECT generate_series_monthly('2024-01-01', '2024-05-01')",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "select product_service, sum(debit) from master_txn_table as T1 join chart_of_accounts as T2 on T1.account = T2.account_name where transaction_date BETWEEN date(current_date, '-3 months', 'start of year', '+3 months') AND date(current_date, '-3 months', 'start of year','+1 year', '+3 months', '-1 day') and account_type in ('Expense','Other Expense') group by product_service",
+        "mysql": "SELECT product_service, SUM(debit) FROM master_txn_table AS T1 JOIN chart_of_accounts AS T2 ON T1.account = T2.account_name WHERE transaction_date BETWEEN DATE(CURRENT_DATE, '-3 months', 'start of year', '+3 months') AND DATE(CURRENT_DATE, '-3 months', 'start of year', '+1 year', '+3 months', '-1 day') AND account_type IN ('Expense', 'Other Expense') GROUP BY product_service",
+        "id": "BookSQL",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT MAX(strftime('%J', `Ship Date`) - strftime('%J', `Order Date`)) AS longestTimeDays FROM people AS T1 INNER JOIN central_superstore AS T2 ON T1.`Customer ID` = T2.`Customer ID` WHERE T1.`Customer Name` = 'Aimee Bixby'",
+        "postgresql": "SELECT MAX(TO_CHAR(CAST(\"Ship Date\" AS TIMESTAMP), '%J') - TO_CHAR(CAST(\"Order Date\" AS TIMESTAMP), '%J')) AS longestTimeDays FROM people AS T1 INNER JOIN central_superstore AS T2 ON T1.\"Customer ID\" = T2.\"Customer ID\" WHERE T1.\"Customer Name\" = 'Aimee Bixby'",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT DISTINCT COUNT ( DISTINCT t4.citingpaperid ) , t3.venueid FROM paperkeyphrase AS t2 JOIN keyphrase AS t1 ON t2.keyphraseid = t1.keyphraseid JOIN paper AS t3 ON t3.paperid = t2.paperid JOIN cite AS t4 ON t3.paperid = t4.citedpaperid WHERE t1.keyphrasename = \"NLP\" GROUP BY t3.venueid ORDER BY COUNT ( DISTINCT t4.citingpaperid ) DESC",
+        "postgresql": "SELECT DISTINCT COUNT(DISTINCT t4.citingpaperid), t3.venueid FROM paperkeyphrase AS t2 JOIN keyphrase AS t1 ON t2.keyphraseid = t1.keyphraseid JOIN paper AS t3 ON t3.paperid = t2.paperid JOIN cite AS t4 ON t3.paperid = t4.citedpaperid WHERE t1.keyphrasename = \"NLP\" GROUP BY t3.venueid ORDER BY COUNT(DISTINCT t4.citingpaperid) DESC NULLS LAST",
+        "id": "CSpider",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT CAST(SUM(T2.`Order Quantity`) AS REAL) / 12 FROM Products AS T1 INNER JOIN `Sales Orders` AS T2 ON T2._ProductID = T1.ProductID WHERE T1.`Product Name` = 'Ornaments' AND T2.OrderDate LIKE '%/%/18'",
+        "postgresql": "SELECT CAST(SUM(T2.\"Order Quantity\") AS REAL) / NULLIF(12, 0) FROM Products AS T1 INNER JOIN \"Sales Orders\" AS T2 ON T2._ProductID = T1.ProductID WHERE T1.\"Product Name\" = 'Ornaments' AND T2.OrderDate LIKE '%/%/18'",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "select count(distinct transaction_id) from master_txn_table where customers = \"Stephanie Edwards\" and transaction_type = 'invoice' and open_balance >0 and transaction_date BETWEEN date(current_date, '-3 months', 'start of year', '+3 months') AND date(current_date, '-3 months', 'start of year','+1 year', '+3 months', '-1 day')",
+        "mysql": "SELECT COUNT(DISTINCT transaction_id) FROM master_txn_table WHERE customers = `Stephanie Edwards` AND transaction_type = 'invoice' AND open_balance > 0 AND transaction_date BETWEEN DATE(CURRENT_DATE, '-3 months', 'start of year', '+3 months') AND DATE(CURRENT_DATE, '-3 months', 'start of year', '+1 year', '+3 months', '-1 day')",
+        "id": "BookSQL",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT AVG(STRFTIME('%Y', date('NOW')) - STRFTIME('%Y', T1.Birthday)) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.`T-CHO` >= 250 AND T1.SEX = 'M'",
+        "postgresql": "SELECT AVG(TO_CHAR(CAST(DATE('NOW') AS TIMESTAMP), 'YYYY') - TO_CHAR(CAST(T1.Birthday AS TIMESTAMP), 'YYYY')) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.\"T-CHO\" >= 250 AND T1.SEX = 'M'",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "select count(distinct transaction_id) from master_txn_table where customers = \"Stephanie Edwards\" and transaction_type = 'invoice' and open_balance >0 and transaction_date BETWEEN date(current_date, '-3 months', 'start of year', '+3 months') AND date(current_date, '-3 months', 'start of year','+1 year', '+3 months', '-1 day')",
+        "mysql": "SELECT COUNT(DISTINCT transaction_id) FROM master_txn_table WHERE customers = `Stephanie Edwards` AND transaction_type = 'invoice' AND open_balance > 0 AND transaction_date BETWEEN DATE(CURRENT_DATE, '-3 months', 'start of year', '+3 months') AND DATE(CURRENT_DATE, '-3 months', 'start of year', '+1 year', '+3 months', '-1 day')",
+        "id": "BookSQL",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "sqlite": "SELECT 100 * (CAST(REPLACE(SUBSTR(T2.maxsalary, 4), ',', '') AS REAL) - CAST(REPLACE(SUBSTR(T1.salary, 4), ',', '') AS REAL)) / CAST(REPLACE(SUBSTR(T1.salary, 4), ',', '') AS REAL) AS per FROM employee AS T1 INNER JOIN position AS T2 ON T1.positionID = T2.positionID WHERE T1.firstname = 'Jose' AND T1.lastname = 'Rodriguez'",
+        "postgresql": "SELECT 100 * (CAST(REPLACE(SUBSTRING(T2.maxsalary FROM 4), ',', '') AS REAL) - CAST(REPLACE(SUBSTRING(T1.salary FROM 4), ',', '') AS REAL)) / NULLIF(CAST(REPLACE(SUBSTRING(T1.salary FROM 4), ',', '') AS REAL), 0) AS per FROM employee AS T1 INNER JOIN position AS T2 ON T1.positionID = T2.positionID WHERE T1.firstname = 'Jose' AND T1.lastname = 'Rodriguez'",
+        "id": "BIRD",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "CREATE OR REPLACE FUNCTION get_user_ages() RETURNS setof numeric AS $BODY$ DECLARE curr_age text; BEGIN FOR curr_age IN SELECT Age FROM users LOOP BEGIN RETURN NEXT curr_age::numeric; EXCEPTION WHEN OTHERS THEN NULL; END; END LOOP; END $BODY$ LANGUAGE plpgsql; SELECT * FROM get_user_ages()",
+        "mysql": "CREATE OR REPLACE FUNCTION get_user_ages() RETURNS setof numeric AS $BODY$ DECLARE curr_age text; BEGIN FOR curr_age IN SELECT Age FROM users LOOP BEGIN RETURN NEXT curr_age::numeric; EXCEPTION WHEN OTHERS THEN NULL; END; END LOOP; END $BODY$ LANGUAGE plpgsql",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    },
+    {
+        "postgresql": "CREATE OR REPLACE FUNCTION get_user_ages() RETURNS setof numeric AS $BODY$ DECLARE curr_age text; BEGIN FOR curr_age IN SELECT Age FROM users LOOP BEGIN RETURN NEXT curr_age::numeric; EXCEPTION WHEN OTHERS THEN NULL; END; END LOOP; END $BODY$ LANGUAGE plpgsql; SELECT * FROM get_user_ages()",
+        "mysql": "CREATE OR REPLACE FUNCTION get_user_ages() RETURNS setof numeric AS $BODY$ DECLARE curr_age text; BEGIN FOR curr_age IN SELECT Age FROM users LOOP BEGIN RETURN NEXT curr_age::numeric; EXCEPTION WHEN OTHERS THEN NULL; END; END LOOP; END $BODY$ LANGUAGE plpgsql",
+        "id": "BIRD Critic (PostgreSQL)",
+        "additional_info": {
+            "model_answer_list": [],
+            "used_knowledge_pieces": [],
+            "lift_histories": []
+        }
+    }
+]
